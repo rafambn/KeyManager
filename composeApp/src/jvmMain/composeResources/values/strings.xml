@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Keystore Manager</string>
+    <string name="add_key">Add Key</string>
+    <string name="open_keystore">Open Keystore</string>
+    <string name="open_keystore_hint">Open a Keystore file to begin</string>
+    <string name="error_title">Error</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="password_dialog_title">Enter Keystore Password</string>
+    <string name="password_label">Password</string>
+    <string name="unlock">Unlock</string>
+    <string name="destination_password_title">Enter Destination Password</string>
+    <string name="create_key_title">Create New Key Pair</string>
+    <string name="alias_label">Alias</string>
+    <string name="validity_label">Validity (Days)</string>
+    <string name="dn_section_title">Distinguished Name (DN)</string>
+    <string name="cn_label">CN (Common Name)</string>
+    <string name="country_label">C (Country)</string>
+    <string name="ou_label">OU</string>
+    <string name="org_label">O (Organization)</string>
+    <string name="locality_label">L (Locality)</string>
+    <string name="state_label">ST (State)</string>
+    <string name="create_button">Create</string>
+    <string name="rename_dialog_title">Rename Alias</string>
+    <string name="current_alias_format">Current: %s</string>
+    <string name="new_alias_label">New Alias</string>
+    <string name="rename_button">Rename</string>
+    <string name="delete_dialog_title">Delete Alias</string>
+    <string name="delete_confirmation_format">Are you sure you want to delete 
+'%s'?</string>
+    <string name="delete_button">Delete</string>
+    <string name="move_action">Move</string>
+    <string name="select_keystore_title">Select Keystore</string>
+    <string name="select_destination_keystore_title">Select Destination Keystore</string>
+    <string name="edit_action">Edit</string>
+    <string name="type_key">Key</string>
+    <string name="type_certificate">Certificate</string>
+    <string name="type_unknown">Unknown</string>
+    
+    <!-- Error Messages -->
+    <string name="error_load_keystore">Failed to load keystore: %s</string>
+    <string name="error_delete_alias">Failed to delete alias: %s</string>
+    <string name="error_rename_alias">Failed to rename alias: %s</string>
+    <string name="error_move_alias">Failed to move alias: %s</string>
+    <string name="error_create_key">Failed to create key: %s</string>
+</resources>

@@ -12,7 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import unidesk.com.br.keymanager.core.KeyInfo
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.ui.components.AliasCard
 import unidesk.com.br.keymanager.ui.dialogs.ConfirmationDialog
 import unidesk.com.br.keymanager.ui.dialogs.CreateKeyDialog
@@ -23,20 +24,21 @@ import unidesk.com.br.keymanager.viewmodel.MainViewModel
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-
+import org.jetbrains.compose.resources.stringResource
 import unidesk.com.br.keymanager.viewmodel.KeystoreEvents
 
 @Composable
 fun KeystoreScreen(viewModel: MainViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    
+
     LaunchedEffect(viewModel) {
         viewModel.eventChannel.collect { event ->
-            when(event) {
+            when (event) {
                 is KeystoreEvents.ShowError -> {
                     // Handled by state.errorMessage for now, can add Snackbar later
-                    println("Event Error: ${event.message}") 
+                    println("Event Error: ${event.message}")
                 }
+
                 KeystoreEvents.ClearError -> {
                     // Handled by state
                 }
@@ -70,24 +72,27 @@ fun KeystoreContent(
 ) {
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
-    
+
     var aliasToRename by remember { mutableStateOf<String?>(null) }
     var aliasToDelete by remember { mutableStateOf<String?>(null) }
-    
+
     // Move state
     var aliasToMove by remember { mutableStateOf<String?>(null) }
     var moveTargetFile by remember { mutableStateOf<File?>(null) }
     var showMovePasswordDialog by remember { mutableStateOf(false) }
 
+    val selectKeystoreTitle = stringResource(Res.string.select_keystore_title)
+    val selectDestinationTitle = stringResource(Res.string.select_destination_keystore_title)
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Column {
-                        Text(text = state.currentFile?.name ?: "KeyManager")
+                        Text(text = state.currentFile?.name ?: stringResource(Res.string.app_name))
                         if (state.currentFile != null) {
                             Text(
-                                text = state.currentFile.parent ?: "", 
+                                text = state.currentFile.parent ?: "",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -100,17 +105,20 @@ fun KeystoreContent(
                 actions = {
                     if (state.isKeystoreLoaded) {
                         IconButton(onClick = { showCreateDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add Key")
+                            Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_key))
                         }
                     }
                     IconButton(onClick = {
-                        val file = openFileDialog(mode = FileDialog.LOAD)
+                        val file = openFileDialog(
+                            mode = FileDialog.LOAD,
+                            title = selectKeystoreTitle
+                        )
                         if (file != null) {
                             onLoadKeystore(file)
                             showPasswordDialog = true
                         }
                     }) {
-                        Icon(Icons.Default.FolderOpen, contentDescription = "Open Keystore")
+                        Icon(Icons.Default.FolderOpen, contentDescription = stringResource(Res.string.open_keystore))
                     }
                 }
             )
@@ -131,7 +139,10 @@ fun KeystoreContent(
                             onRename = { aliasToRename = keyInfo.alias },
                             onDelete = { aliasToDelete = keyInfo.alias },
                             onMove = {
-                                val file = openFileDialog(mode = FileDialog.LOAD, title = "Select Destination Keystore")
+                                val file = openFileDialog(
+                                    mode = FileDialog.LOAD,
+                                    title = selectDestinationTitle
+                                )
                                 if (file != null) {
                                     aliasToMove = keyInfo.alias
                                     moveTargetFile = file
@@ -148,23 +159,23 @@ fun KeystoreContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.FolderOpen, 
-                        contentDescription = null, 
+                        Icons.Default.FolderOpen,
+                        contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text("Open a Keystore file to begin", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(Res.string.open_keystore_hint), style = MaterialTheme.typography.titleMedium)
                 }
             }
-            
+
             state.errorMessage?.let { error ->
                 AlertDialog(
                     onDismissRequest = onClearError,
-                    title = { Text("Error") },
+                    title = { Text(stringResource(Res.string.error_title)) },
                     text = { Text(error) },
                     confirmButton = {
-                        Button(onClick = onClearError) { Text("OK") }
+                        Button(onClick = onClearError) { Text(stringResource(Res.string.ok)) }
                     }
                 )
             }
@@ -181,12 +192,12 @@ fun KeystoreContent(
             }
         )
     }
-    
+
     if (showMovePasswordDialog && aliasToMove != null && moveTargetFile != null) {
         PasswordDialog(
-            title = "Enter Destination Password",
-            onDismiss = { 
-                showMovePasswordDialog = false 
+            title = stringResource(Res.string.destination_password_title),
+            onDismiss = {
+                showMovePasswordDialog = false
                 aliasToMove = null
                 moveTargetFile = null
             },
@@ -222,8 +233,8 @@ fun KeystoreContent(
 
     aliasToDelete?.let { alias ->
         ConfirmationDialog(
-            title = "Delete Alias",
-            message = "Are you sure you want to delete '$alias'?",
+            title = stringResource(Res.string.delete_dialog_title),
+            message = stringResource(Res.string.delete_confirmation_format, alias),
             onConfirm = {
                 onDeleteAlias(alias)
                 aliasToDelete = null
@@ -233,7 +244,7 @@ fun KeystoreContent(
     }
 }
 
-fun openFileDialog(mode: Int, title: String = "Select Keystore"): File? {
+fun openFileDialog(mode: Int, title: String): File? {
     val dialog = FileDialog(null as Frame?, title, mode)
     dialog.isVisible = true
     return if (dialog.directory != null && dialog.file != null) {

@@ -32,9 +32,9 @@ class KeystoreRepository {
             val isKey = ks.isKeyEntry(alias)
             val isCert = ks.isCertificateEntry(alias)
             val type = when {
-                isKey -> "Key"
-                isCert -> "Certificate"
-                else -> "Unknown"
+                isKey -> "type_key"
+                isCert -> "type_certificate"
+                else -> "type_unknown"
             }
 
             val cert = ks.getCertificate(alias)

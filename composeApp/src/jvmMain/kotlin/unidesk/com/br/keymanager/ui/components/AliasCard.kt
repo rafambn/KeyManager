@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeyInfo
 
 @Composable
@@ -34,7 +36,7 @@ fun AliasCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Icon(
-                        if (keyInfo.type == "Key") Icons.Default.Key else Icons.Default.VerifiedUser,
+                        if (keyInfo.type == "type_key") Icons.Default.Key else Icons.Default.VerifiedUser,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
@@ -49,8 +51,13 @@ fun AliasCard(
                                 modifier = Modifier.height(24.dp)
                             )
                             Spacer(Modifier.width(8.dp))
+                            val typeLabel = when(keyInfo.type) {
+                                "type_key" -> stringResource(Res.string.type_key)
+                                "type_certificate" -> stringResource(Res.string.type_certificate)
+                                else -> stringResource(Res.string.type_unknown)
+                            }
                             Text(
-                                text = keyInfo.type, 
+                                text = typeLabel, 
                                 style = MaterialTheme.typography.bodySmall, 
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -59,13 +66,13 @@ fun AliasCard(
                 }
                 Row {
                     IconButton(onClick = onMove) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Move")
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(Res.string.move_action))
                     }
                     IconButton(onClick = onRename) {
-                        Icon(Icons.Default.Edit, contentDescription = "Rename")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.edit_action))
                     }
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_button), tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }

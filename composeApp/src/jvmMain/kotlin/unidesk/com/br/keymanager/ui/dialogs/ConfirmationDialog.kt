@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.*
+
 @Composable
 fun ConfirmationDialog(
     title: String,
@@ -17,12 +20,12 @@ fun ConfirmationDialog(
         text = { Text(message) },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                Text("Delete")
+                Text(stringResource(Res.string.delete_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )

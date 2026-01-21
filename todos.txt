@@ -1,0 +1,9 @@
+dialog for password, press enter to unlock;
+confirmation dialog for moving keys;
+bulk keys moving feature;
+improve theming;
+create icon for app;
+refresh buttom on the topbar for refreshing keys;
+improve events;
+improve error events;
+improve state;

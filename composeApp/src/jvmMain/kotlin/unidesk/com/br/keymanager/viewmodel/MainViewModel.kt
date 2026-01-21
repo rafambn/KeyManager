@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.getString
+import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeystoreRepository
 import java.io.File
 
@@ -62,7 +64,7 @@ class MainViewModel(
                     ) 
                 }
             } catch (e: Exception) {
-                val msg = "Failed to load keystore: ${e.message}"
+                val msg = getString(Res.string.error_load_keystore, e.message ?: "")
                 _state.update { it.copy(errorMessage = msg, isLoading = false) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
                 e.printStackTrace()
@@ -78,7 +80,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = "Failed to delete alias: ${e.message}"
+                val msg = getString(Res.string.error_delete_alias, e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -93,7 +95,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = "Failed to rename alias: ${e.message}"
+                val msg = getString(Res.string.error_rename_alias, e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -108,7 +110,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = "Failed to move alias: ${e.message}"
+                val msg = getString(Res.string.error_move_alias, e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -123,7 +125,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = "Failed to create key: ${e.message}"
+                val msg = getString(Res.string.error_create_key, e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }

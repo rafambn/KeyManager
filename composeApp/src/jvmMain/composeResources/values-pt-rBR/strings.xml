@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Gerenciador de Keystore</string>
+    <string name="add_key">Adicionar Chave</string>
+    <string name="open_keystore">Abrir Keystore</string>
+    <string name="open_keystore_hint">Abra um arquivo Keystore para começar</string>
+    <string name="error_title">Erro</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="password_dialog_title">Digite a Senha da Keystore</string>
+    <string name="password_label">Senha</string>
+    <string name="unlock">Desbloquear</string>
+    <string name="destination_password_title">Digite a Senha de Destino</string>
+    <string name="create_key_title">Criar Novo Par de Chaves</string>
+    <string name="alias_label">Alias (Apelido)</string>
+    <string name="validity_label">Validade (Dias)</string>
+    <string name="dn_section_title">Nome Distinto (DN)</string>
+    <string name="cn_label">CN (Nome Comum)</string>
+    <string name="country_label">C (País)</string>
+    <string name="ou_label">OU (Unidade Org.)</string>
+    <string name="org_label">O (Organização)</string>
+    <string name="locality_label">L (Localidade)</string>
+    <string name="state_label">ST (Estado)</string>
+    <string name="create_button">Criar</string>
+    <string name="rename_dialog_title">Renomear Alias</string>
+    <string name="current_alias_format">Atual: %s</string>
+    <string name="new_alias_label">Novo Alias</string>
+    <string name="rename_button">Renomear</string>
+    <string name="delete_dialog_title">Excluir Alias</string>
+    <string name="delete_confirmation_format">Tem certeza que deseja excluir 
+'%s'?</string>
+    <string name="delete_button">Excluir</string>
+    <string name="move_action">Mover</string>
+    <string name="select_keystore_title">Selecionar Keystore</string>
+    <string name="select_destination_keystore_title">Selecionar Keystore de Destino</string>
+    <string name="edit_action">Editar</string>
+    <string name="type_key">Chave</string>
+    <string name="type_certificate">Certificado</string>
+    <string name="type_unknown">Desconhecido</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_keystore">Falha ao carregar keystore: %s</string>
+    <string name="error_delete_alias">Falha ao excluir alias: %s</string>
+    <string name="error_rename_alias">Falha ao renomear alias: %s</string>
+    <string name="error_move_alias">Falha ao mover alias: %s</string>
+    <string name="error_create_key">Falha ao criar chave: %s</string>
+</resources>

@@ -5,10 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.*
 
 @Composable
 fun PasswordDialog(
-    title: String = "Enter Keystore Password",
+    title: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
@@ -16,12 +18,12 @@ fun PasswordDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = { Text(title ?: stringResource(Res.string.password_dialog_title)) },
         text = {
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(Res.string.password_label)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
@@ -29,12 +31,12 @@ fun PasswordDialog(
         },
         confirmButton = {
             Button(onClick = { onConfirm(password) }) {
-                Text("Unlock")
+                Text(stringResource(Res.string.unlock))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.cancel))
             }
         }
     )
