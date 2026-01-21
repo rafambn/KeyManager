@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.viewmodel
+package unidesk.com.br.keymanager.ui.keystore
 
 import kotlinx.coroutines.flow.Flow
 

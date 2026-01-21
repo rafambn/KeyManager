@@ -1,9 +1,7 @@
-package unidesk.com.br.keymanager.viewmodel
+package unidesk.com.br.keymanager.ui.keystore
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -22,8 +20,7 @@ import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeystoreRepository
 import java.io.File
 
-class MainViewModel(
-    private val _savedStateHandle: SavedStateHandle,
+class KeystoreViewModel(
     private val repository: KeystoreRepository
 ) : ViewModel(), KeystoreEventsProvider {
 
@@ -212,10 +209,7 @@ class MainViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val repository = KeystoreRepository()
-                MainViewModel(
-                    _savedStateHandle = createSavedStateHandle(),
-                    repository = repository
-                )
+                KeystoreViewModel(repository = repository)
             }
         }
     }

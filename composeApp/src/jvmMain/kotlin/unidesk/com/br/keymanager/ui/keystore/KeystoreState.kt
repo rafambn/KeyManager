@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.viewmodel
+package unidesk.com.br.keymanager.ui.keystore
 
 import unidesk.com.br.keymanager.core.KeyInfo
 import java.io.File

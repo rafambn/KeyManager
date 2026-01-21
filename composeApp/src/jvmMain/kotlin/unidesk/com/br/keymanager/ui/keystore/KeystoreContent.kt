@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.ui
+package unidesk.com.br.keymanager.ui.keystore
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import keymanager.composeapp.generated.resources.Res
 import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.ui.components.AliasCard
@@ -20,48 +19,13 @@ import unidesk.com.br.keymanager.ui.dialogs.ConfirmationDialog
 import unidesk.com.br.keymanager.ui.dialogs.CreateKeyDialog
 import unidesk.com.br.keymanager.ui.dialogs.PasswordDialog
 import unidesk.com.br.keymanager.ui.dialogs.RenameDialog
-import unidesk.com.br.keymanager.viewmodel.KeystoreState
-import unidesk.com.br.keymanager.viewmodel.MainViewModel
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.File
+
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.getString
 import kotlinx.coroutines.runBlocking
-import unidesk.com.br.keymanager.viewmodel.KeystoreEvents
-
-@Composable
-fun KeystoreScreen(viewModel: MainViewModel) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(viewModel) {
-        viewModel.eventChannel.collect { event ->
-            when (event) {
-                is KeystoreEvents.ShowError -> {
-                    // Handled by state.errorMessage for now, can add Snackbar later
-                    println("Event Error: ${event.message}")
-                }
-
-                KeystoreEvents.ClearError -> {
-                    // Handled by state
-                }
-            }
-        }
-    }
-
-    KeystoreContent(
-        state = state,
-        onLoadKeystore = viewModel::loadKeystoreFile,
-        onUnlockKeystore = viewModel::unlockKeystore,
-        onRefresh = viewModel::refresh,
-        onCreateKey = viewModel::createKey,
-        onRenameAlias = viewModel::renameAlias,
-        onDeleteAlias = viewModel::deleteAlias,
-                        onMoveAlias = viewModel::moveAlias,
-        onMoveSelected = viewModel::moveSelectedAliases,
-        onClearError = viewModel::clearError
-    )
-}
+import java.awt.FileDialog
+import java.awt.Frame
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +83,10 @@ fun KeystoreContent(
                 actions = {
                     if (state.isKeystoreLoaded) {
                         IconButton(onClick = { showBulkSelectionDialog = true }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(Res.string.move_action))
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = stringResource(Res.string.move_action)
+                            )
                         }
                         IconButton(onClick = { showCreateDialog = true }) {
                             Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_key))
@@ -259,7 +226,12 @@ fun KeystoreContent(
 
     if (showBulkMoveConfirmation && moveTargetFile != null) {
         val bulkMoveMsg = remember(selectedBulkAliases.size, moveTargetFile) {
-            runBlocking { getString(Res.string.move_bulk_confirmation_format).format(selectedBulkAliases.size, moveTargetFile!!.name) }
+            runBlocking {
+                getString(Res.string.move_bulk_confirmation_format).format(
+                    selectedBulkAliases.size,
+                    moveTargetFile!!.name
+                )
+            }
         }
         ConfirmationDialog(
             title = stringResource(Res.string.move_bulk_dialog_title),
@@ -267,12 +239,12 @@ fun KeystoreContent(
             confirmButtonText = stringResource(Res.string.move_button),
             confirmButtonColor = MaterialTheme.colorScheme.primary,
             onConfirm = {
-            showBulkMoveConfirmation = false
-            onMoveSelected(selectedBulkAliases, moveTargetFile!!, moveTargetPassword ?: "")
-            moveTargetFile = null
-            moveTargetPassword = null
-            selectedBulkAliases = emptyList()
-        },
+                showBulkMoveConfirmation = false
+                onMoveSelected(selectedBulkAliases, moveTargetFile!!, moveTargetPassword ?: "")
+                moveTargetFile = null
+                moveTargetPassword = null
+                selectedBulkAliases = emptyList()
+            },
             onDismiss = {
                 showBulkMoveConfirmation = false
                 moveTargetFile = null
