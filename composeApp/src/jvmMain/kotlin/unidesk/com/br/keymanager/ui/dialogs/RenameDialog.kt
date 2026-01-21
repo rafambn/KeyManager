@@ -6,6 +6,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.getString
+import kotlinx.coroutines.runBlocking
 import keymanager.composeapp.generated.resources.*
 
 @Composable
@@ -15,13 +17,16 @@ fun RenameDialog(
     onConfirm: (String) -> Unit
 ) {
     var newAlias by remember { mutableStateOf(currentAlias) }
+    val currentAliasText = remember(currentAlias) {
+        runBlocking { getString(Res.string.current_alias_format).format(currentAlias) }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.rename_dialog_title)) },
         text = {
             Column {
-                Text(stringResource(Res.string.current_alias_format, currentAlias))
+                Text(currentAliasText)
                 Spacer(Modifier.height(8.dp))
                 TextField(
                     value = newAlias,

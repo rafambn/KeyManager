@@ -11,6 +11,8 @@ import keymanager.composeapp.generated.resources.*
 fun ConfirmationDialog(
     title: String,
     message: String,
+    confirmButtonText: String = stringResource(Res.string.delete_button),
+    confirmButtonColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.error,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -19,8 +21,8 @@ fun ConfirmationDialog(
         title = { Text(title) },
         text = { Text(message) },
         confirmButton = {
-            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                Text(stringResource(Res.string.delete_button))
+            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = confirmButtonColor)) {
+                Text(confirmButtonText)
             }
         },
         dismissButton = {

@@ -127,4 +127,6 @@ class KeystoreRepository {
     }
     
     fun isLoaded(): Boolean = keyStore != null
+
+    fun getCurrentPassword(): CharArray? = currentPassword
 }

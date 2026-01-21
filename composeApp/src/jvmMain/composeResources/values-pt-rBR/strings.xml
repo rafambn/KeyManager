@@ -22,12 +22,11 @@
     <string name="state_label">ST (Estado)</string>
     <string name="create_button">Criar</string>
     <string name="rename_dialog_title">Renomear Alias</string>
-    <string name="current_alias_format">Atual: %s</string>
+    <string name="current_alias_format">Atual: %1$s</string>
     <string name="new_alias_label">Novo Alias</string>
     <string name="rename_button">Renomear</string>
     <string name="delete_dialog_title">Excluir Alias</string>
-    <string name="delete_confirmation_format">Tem certeza que deseja excluir 
-'%s'?</string>
+    <string name="delete_confirmation_format">Tem certeza que deseja excluir '%1$s'?</string>
     <string name="delete_button">Excluir</string>
     <string name="move_action">Mover</string>
     <string name="select_keystore_title">Selecionar Keystore</string>
@@ -36,11 +35,21 @@
     <string name="type_key">Chave</string>
     <string name="type_certificate">Certificado</string>
     <string name="type_unknown">Desconhecido</string>
-
+    
     <!-- Error Messages -->
-    <string name="error_load_keystore">Falha ao carregar keystore: %s</string>
-    <string name="error_delete_alias">Falha ao excluir alias: %s</string>
-    <string name="error_rename_alias">Falha ao renomear alias: %s</string>
-    <string name="error_move_alias">Falha ao mover alias: %s</string>
-    <string name="error_create_key">Falha ao criar chave: %s</string>
+    <string name="error_load_keystore">Falha ao carregar keystore: %1$s</string>
+    <string name="error_delete_alias">Falha ao excluir alias: %1$s</string>
+    <string name="error_rename_alias">Falha ao renomear alias: %1$s</string>
+    <string name="error_move_alias">Falha ao mover alias: %1$s</string>
+    <string name="error_create_key">Falha ao criar chave: %1$s</string>
+    <string name="error_bulk_move">Falha ao mover alguns aliases:\n%1$s</string>
+    <string name="move_button">Mover</string>
+    <string name="move_dialog_title">Mover Chave</string>
+    <string name="move_confirmation_format">Tem certeza que deseja mover '%1$s' para '%2$s'?</string>
+    <string name="move_selected_format">Mover Selecionados (%1$d)</string>
+    <string name="select_all">Selecionar Todos</string>
+    <string name="deselect_all">Desmarcar Todos</string>
+    <string name="move_bulk_dialog_title">Mover Chaves Selecionadas</string>
+    <string name="move_bulk_confirmation_format">Tem certeza que deseja mover %1$d chaves para '%2$s'?</string>
+    <string name="refresh_action">Atualizar</string>
 </resources>

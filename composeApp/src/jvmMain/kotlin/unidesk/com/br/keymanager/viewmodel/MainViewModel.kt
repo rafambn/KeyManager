@@ -64,7 +64,7 @@ class MainViewModel(
                     ) 
                 }
             } catch (e: Exception) {
-                val msg = getString(Res.string.error_load_keystore, e.message ?: "")
+                val msg = getString(Res.string.error_load_keystore).format(e.message ?: "")
                 _state.update { it.copy(errorMessage = msg, isLoading = false) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
                 e.printStackTrace()
@@ -80,7 +80,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = getString(Res.string.error_delete_alias, e.message ?: "")
+                val msg = getString(Res.string.error_delete_alias).format(e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -95,7 +95,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = getString(Res.string.error_rename_alias, e.message ?: "")
+                val msg = getString(Res.string.error_rename_alias).format(e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -110,7 +110,7 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = getString(Res.string.error_move_alias, e.message ?: "")
+                val msg = getString(Res.string.error_move_alias).format(e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
@@ -125,8 +125,70 @@ class MainViewModel(
                 }
                 refreshAliases()
             } catch (e: Exception) {
-                val msg = getString(Res.string.error_create_key, e.message ?: "")
+                val msg = getString(Res.string.error_create_key).format(e.message ?: "")
                 _state.update { it.copy(errorMessage = msg) }
+                _eventChannel.trySend(KeystoreEvents.ShowError(msg))
+            }
+        }
+    }
+
+    fun toggleSelection(alias: String) {
+        // Not used anymore in the new Bulk Move flow, but keeping for compatibility if needed or removing
+    }
+
+    fun clearSelection() {
+        // Not used anymore
+    }
+
+    fun selectAll() {
+        // Not used anymore
+    }
+
+    fun moveSelectedAliases(aliasesToMove: List<String>, targetFile: File, targetPassword: String) {
+        if (aliasesToMove.isEmpty()) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            val errors = mutableListOf<String>()
+            
+            withContext(Dispatchers.IO) {
+                aliasesToMove.forEach { alias ->
+                    try {
+                        repository.moveAlias(alias, targetFile, targetPassword)
+                    } catch (e: Exception) {
+                        errors.add("$alias: ${e.message}")
+                    }
+                }
+            }
+
+            if (errors.isNotEmpty()) {
+                val errorDetails = errors.joinToString("\n")
+                val msg = getString(Res.string.error_bulk_move).format(errorDetails)
+                _state.update { it.copy(errorMessage = msg, isLoading = false) }
+                _eventChannel.trySend(KeystoreEvents.ShowError(msg))
+            } else {
+                _state.update { it.copy(isLoading = false) }
+            }
+            refreshAliases()
+        }
+    }
+
+    fun refresh() {
+        val file = _state.value.currentFile ?: return
+        val currentPassword = repository.getCurrentPassword()?.let { String(it) } ?: return
+        
+        _state.update { it.copy(isLoading = true, errorMessage = null) }
+        
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    repository.loadKeystore(file, currentPassword)
+                }
+                refreshAliases()
+                _state.update { it.copy(isLoading = false) }
+            } catch (e: Exception) {
+                val msg = getString(Res.string.error_load_keystore).format(e.message ?: "")
+                _state.update { it.copy(errorMessage = msg, isLoading = false) }
                 _eventChannel.trySend(KeystoreEvents.ShowError(msg))
             }
         }

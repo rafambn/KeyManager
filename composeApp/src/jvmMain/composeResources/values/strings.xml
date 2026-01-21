@@ -22,12 +22,11 @@
     <string name="state_label">ST (State)</string>
     <string name="create_button">Create</string>
     <string name="rename_dialog_title">Rename Alias</string>
-    <string name="current_alias_format">Current: %s</string>
+    <string name="current_alias_format">Current: %1$s</string>
     <string name="new_alias_label">New Alias</string>
     <string name="rename_button">Rename</string>
     <string name="delete_dialog_title">Delete Alias</string>
-    <string name="delete_confirmation_format">Are you sure you want to delete 
-'%s'?</string>
+    <string name="delete_confirmation_format">Are you sure you want to delete '%1$s'?</string>
     <string name="delete_button">Delete</string>
     <string name="move_action">Move</string>
     <string name="select_keystore_title">Select Keystore</string>
@@ -38,9 +37,19 @@
     <string name="type_unknown">Unknown</string>
     
     <!-- Error Messages -->
-    <string name="error_load_keystore">Failed to load keystore: %s</string>
-    <string name="error_delete_alias">Failed to delete alias: %s</string>
-    <string name="error_rename_alias">Failed to rename alias: %s</string>
-    <string name="error_move_alias">Failed to move alias: %s</string>
-    <string name="error_create_key">Failed to create key: %s</string>
+    <string name="error_load_keystore">Failed to load keystore: %1$s</string>
+    <string name="error_delete_alias">Failed to delete alias: %1$s</string>
+    <string name="error_rename_alias">Failed to rename alias: %1$s</string>
+    <string name="error_move_alias">Failed to move alias: %1$s</string>
+    <string name="error_create_key">Failed to create key: %1$s</string>
+    <string name="error_bulk_move">Failed to move some aliases:\n%1$s</string>
+    <string name="move_button">Move</string>
+    <string name="move_dialog_title">Move Key</string>
+    <string name="move_confirmation_format">Are you sure you want to move '%1$s' to '%2$s'?</string>
+    <string name="move_selected_format">Move Selected (%1$d)</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="move_bulk_dialog_title">Move Selected Keys</string>
+    <string name="move_bulk_confirmation_format">Are you sure you want to move %1$d keys to '%2$s'?</string>
+    <string name="refresh_action">Refresh</string>
 </resources>

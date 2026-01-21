@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import keymanager.composeapp.generated.resources.Res
 import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.ui.components.AliasCard
+import unidesk.com.br.keymanager.ui.dialogs.BulkMoveDialog
 import unidesk.com.br.keymanager.ui.dialogs.ConfirmationDialog
 import unidesk.com.br.keymanager.ui.dialogs.CreateKeyDialog
 import unidesk.com.br.keymanager.ui.dialogs.PasswordDialog
@@ -25,6 +26,8 @@ import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.getString
+import kotlinx.coroutines.runBlocking
 import unidesk.com.br.keymanager.viewmodel.KeystoreEvents
 
 @Composable
@@ -50,10 +53,12 @@ fun KeystoreScreen(viewModel: MainViewModel) {
         state = state,
         onLoadKeystore = viewModel::loadKeystoreFile,
         onUnlockKeystore = viewModel::unlockKeystore,
+        onRefresh = viewModel::refresh,
         onCreateKey = viewModel::createKey,
         onRenameAlias = viewModel::renameAlias,
         onDeleteAlias = viewModel::deleteAlias,
-        onMoveAlias = viewModel::moveAlias,
+                        onMoveAlias = viewModel::moveAlias,
+        onMoveSelected = viewModel::moveSelectedAliases,
         onClearError = viewModel::clearError
     )
 }
@@ -64,14 +69,18 @@ fun KeystoreContent(
     state: KeystoreState,
     onLoadKeystore: (File) -> Unit,
     onUnlockKeystore: (String) -> Unit,
+    onRefresh: () -> Unit,
     onCreateKey: (alias: String, dn: String, validity: Int) -> Unit,
     onRenameAlias: (oldAlias: String, newAlias: String) -> Unit,
     onDeleteAlias: (alias: String) -> Unit,
     onMoveAlias: (alias: String, targetFile: File, password: String) -> Unit,
+    onMoveSelected: (aliases: List<String>, targetFile: File, password: String) -> Unit,
     onClearError: () -> Unit
 ) {
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showBulkSelectionDialog by remember { mutableStateOf(false) }
+    var selectedBulkAliases by remember { mutableStateOf<List<String>>(emptyList()) }
 
     var aliasToRename by remember { mutableStateOf<String?>(null) }
     var aliasToDelete by remember { mutableStateOf<String?>(null) }
@@ -79,7 +88,12 @@ fun KeystoreContent(
     // Move state
     var aliasToMove by remember { mutableStateOf<String?>(null) }
     var moveTargetFile by remember { mutableStateOf<File?>(null) }
+    var moveTargetPassword by remember { mutableStateOf<String?>(null) }
+    var showMoveConfirmation by remember { mutableStateOf(false) }
     var showMovePasswordDialog by remember { mutableStateOf(false) }
+
+    var showBulkMoveConfirmation by remember { mutableStateOf(false) }
+    var showBulkMovePasswordDialog by remember { mutableStateOf(false) }
 
     val selectKeystoreTitle = stringResource(Res.string.select_keystore_title)
     val selectDestinationTitle = stringResource(Res.string.select_destination_keystore_title)
@@ -104,8 +118,14 @@ fun KeystoreContent(
                 ),
                 actions = {
                     if (state.isKeystoreLoaded) {
+                        IconButton(onClick = { showBulkSelectionDialog = true }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(Res.string.move_action))
+                        }
                         IconButton(onClick = { showCreateDialog = true }) {
                             Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.add_key))
+                        }
+                        IconButton(onClick = onRefresh) {
+                            Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.refresh_action))
                         }
                     }
                     IconButton(onClick = {
@@ -183,12 +203,96 @@ fun KeystoreContent(
     }
 
     // Dialogs
+    if (showBulkSelectionDialog) {
+        BulkMoveDialog(
+            aliases = state.aliases.map { it.alias },
+            onDismiss = { showBulkSelectionDialog = false },
+            onConfirm = { selected ->
+                selectedBulkAliases = selected
+                showBulkSelectionDialog = false
+                val file = openFileDialog(
+                    mode = FileDialog.LOAD,
+                    title = selectDestinationTitle
+                )
+                if (file != null) {
+                    moveTargetFile = file
+                    showBulkMovePasswordDialog = true
+                }
+            }
+        )
+    }
+
     if (showPasswordDialog) {
         PasswordDialog(
             onDismiss = { showPasswordDialog = false },
             onConfirm = { password ->
                 onUnlockKeystore(password)
                 showPasswordDialog = false
+            }
+        )
+    }
+
+    if (showMoveConfirmation && aliasToMove != null && moveTargetFile != null) {
+        val moveMsg = remember(aliasToMove, moveTargetFile) {
+            runBlocking { getString(Res.string.move_confirmation_format).format(aliasToMove!!, moveTargetFile!!.name) }
+        }
+        ConfirmationDialog(
+            title = stringResource(Res.string.move_dialog_title),
+            message = moveMsg,
+            confirmButtonText = stringResource(Res.string.move_button),
+            confirmButtonColor = MaterialTheme.colorScheme.primary,
+            onConfirm = {
+                showMoveConfirmation = false
+                onMoveAlias(aliasToMove!!, moveTargetFile!!, moveTargetPassword ?: "")
+                aliasToMove = null
+                moveTargetFile = null
+                moveTargetPassword = null
+            },
+            onDismiss = {
+                showMoveConfirmation = false
+                aliasToMove = null
+                moveTargetFile = null
+                moveTargetPassword = null
+            }
+        )
+    }
+
+    if (showBulkMoveConfirmation && moveTargetFile != null) {
+        val bulkMoveMsg = remember(selectedBulkAliases.size, moveTargetFile) {
+            runBlocking { getString(Res.string.move_bulk_confirmation_format).format(selectedBulkAliases.size, moveTargetFile!!.name) }
+        }
+        ConfirmationDialog(
+            title = stringResource(Res.string.move_bulk_dialog_title),
+            message = bulkMoveMsg,
+            confirmButtonText = stringResource(Res.string.move_button),
+            confirmButtonColor = MaterialTheme.colorScheme.primary,
+            onConfirm = {
+            showBulkMoveConfirmation = false
+            onMoveSelected(selectedBulkAliases, moveTargetFile!!, moveTargetPassword ?: "")
+            moveTargetFile = null
+            moveTargetPassword = null
+            selectedBulkAliases = emptyList()
+        },
+            onDismiss = {
+                showBulkMoveConfirmation = false
+                moveTargetFile = null
+                moveTargetPassword = null
+            }
+        )
+    }
+
+    if (showBulkMovePasswordDialog && moveTargetFile != null) {
+        PasswordDialog(
+            title = stringResource(Res.string.destination_password_title),
+            onDismiss = {
+                showBulkMovePasswordDialog = false
+                moveTargetFile = null
+                moveTargetPassword = null
+            },
+            onConfirm = { password ->
+                moveTargetPassword = password
+                showBulkMovePasswordDialog = false
+                showBulkMoveConfirmation = true
             }
         )
     }
@@ -200,12 +304,12 @@ fun KeystoreContent(
                 showMovePasswordDialog = false
                 aliasToMove = null
                 moveTargetFile = null
+                moveTargetPassword = null
             },
             onConfirm = { password ->
-                onMoveAlias(aliasToMove!!, moveTargetFile!!, password)
+                moveTargetPassword = password
                 showMovePasswordDialog = false
-                aliasToMove = null
-                moveTargetFile = null
+                showMoveConfirmation = true
             }
         )
     }
@@ -232,9 +336,12 @@ fun KeystoreContent(
     }
 
     aliasToDelete?.let { alias ->
+        val deleteMsg = remember(alias) {
+            runBlocking { getString(Res.string.delete_confirmation_format).format(alias) }
+        }
         ConfirmationDialog(
             title = stringResource(Res.string.delete_dialog_title),
-            message = stringResource(Res.string.delete_confirmation_format, alias),
+            message = deleteMsg,
             onConfirm = {
                 onDeleteAlias(alias)
                 aliasToDelete = null
