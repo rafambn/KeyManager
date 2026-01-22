@@ -3,69 +3,6 @@ package unidesk.com.br.keymanager.core
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-// Generic result for keytool operations
-sealed class KeytoolResult<out T> {
-    data class Success<T>(val data: T) : KeytoolResult<T>()
-    data class Error(val message: String, val exitCode: Int) : KeytoolResult<Nothing>()
-}
-
-// Entry types in a keystore
-enum class EntryType {
-    PRIVATE_KEY,      // PrivateKeyEntry
-    TRUSTED_CERT,     // trustedCertEntry
-    SECRET_KEY,       // SecretKeyEntry
-    UNKNOWN
-}
-
-// Single keystore entry
-data class KeystoreEntry(
-    val alias: String,
-    val creationDate: String,
-    val entryType: EntryType,
-    val certificateChainLength: Int?,
-    val owner: String?,
-    val issuer: String?,
-    val algorithm: String?,
-    val serialNumber: String?,
-    val validFrom: String?,
-    val validUntil: String?,
-    val fingerprint: String?
-)
-
-// Keystore listing result
-data class KeystoreInfo(
-    val type: String,
-    val provider: String,
-    val entryCount: Int,
-    val entries: List<KeystoreEntry>
-)
-
-// Certificate info (for printCert)
-data class CertificateInfo(
-    val owner: String,
-    val issuer: String,
-    val serialNumber: String,
-    val validFrom: String,
-    val validUntil: String,
-    val algorithm: String,
-    val fingerprints: Map<String, String>
-)
-
-// CSR info (for printCertReq)
-data class CertRequestInfo(
-    val subject: String,
-    val algorithm: String,
-    val extensions: List<String>
-)
-
-// CRL info (for printCrl)
-data class CrlInfo(
-    val issuer: String,
-    val thisUpdate: String,
-    val nextUpdate: String?,
-    val revokedCertificates: List<String>
-)
-
 object KeyToolAPI {
 
     private data class RawResult(val stdout: String, val stderr: String, val exitCode: Int)
