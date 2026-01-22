@@ -1,12 +1,8 @@
 package unidesk.com.br.keymanager.ui.screens.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -27,9 +23,8 @@ import java.io.File
 fun NavigationRoot(
     modifier: Modifier = Modifier
 ) {
-    val viewModel = viewModel<KeystoreViewModel>(factory = KeystoreViewModel.Factory)
-    val state by viewModel.state.collectAsState()
-
+    val resultStore = rememberResultStore()
+    
     val backStack: NavBackStack<NavKey> = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -63,11 +58,10 @@ fun NavigationRoot(
         ),
         entryProvider = entryProvider {
             entry<Route.Main> {
-                KeystoreContent(
-                    state = state,
-                    onBulkMoveSelect = { backStack.add(Route.BulkMoveSelect) },
+                KeystoreScreen(
+                    resultStore = resultStore,
+                    onBulkMoveSelect = { aliases -> backStack.add(Route.BulkMoveSelect(aliases)) },
                     onCreateKey = { backStack.add(Route.CreateKey) },
-                    onRefresh = { viewModel.refresh() },
                     onOpenKeystore = { file ->
                         backStack.add(Route.Password("Unlock Keystore", file.absolutePath))
                     },
@@ -79,8 +73,7 @@ fun NavigationRoot(
                     },
                     onMove = { alias, destination ->
                         backStack.add(Route.MovePassword(alias, destination.absolutePath))
-                    },
-                    onClearError = { viewModel.clearError() }
+                    }
                 )
             }
             entry<Route.Password>(
@@ -89,8 +82,7 @@ fun NavigationRoot(
                 PasswordScreen(
                     title = key.title,
                     onUnlock = { password ->
-                        viewModel.loadKeystoreFile(File(key.filePath))
-                        viewModel.unlockKeystore(password)
+                        resultStore.setResult("unlock_password", password)
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -101,7 +93,7 @@ fun NavigationRoot(
             ) {
                 CreateKeyScreen(
                     onCreateKey = { alias, dn, validity ->
-                        viewModel.createKey(alias, dn, validity)
+                        resultStore.setResult("create_key_result", DialogResult.CreateKey(alias, dn, validity))
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -113,7 +105,7 @@ fun NavigationRoot(
                 RenameScreen(
                     alias = key.alias,
                     onRenameConfirm = { newAlias ->
-                        viewModel.renameAlias(key.alias, newAlias)
+                        resultStore.setResult("rename_result", DialogResult.Rename(key.alias, newAlias))
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -125,7 +117,7 @@ fun NavigationRoot(
                 DeleteConfirmationScreen(
                     alias = key.alias,
                     onDeleteConfirm = {
-                        viewModel.deleteAlias(key.alias)
+                        resultStore.setResult("delete_result", DialogResult.Delete(key.alias))
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -148,7 +140,7 @@ fun NavigationRoot(
                     alias = key.alias,
                     fileName = File(key.filePath).name,
                     onMoveConfirm = {
-                        viewModel.moveAlias(key.alias, File(key.filePath), key.password)
+                        resultStore.setResult("move_result", DialogResult.Move(key.alias, File(key.filePath), key.password))
                         backStack.pop()
                         backStack.pop()
                     },
@@ -157,14 +149,13 @@ fun NavigationRoot(
             }
             entry<Route.BulkMoveSelect>(
                 metadata = DialogSceneStrategy.dialog()
-            ) {
+            ) { key ->
                 BulkMoveSelectScreen(
-                    aliases = state.aliases.map { it.alias },
+                    aliases = key.aliases,
                     onAliasesSelected = { selected ->
-                        viewModel.setSelectedBulkAliases(selected)
                         val file = selectDestinationFile("Select Destination Keystore")
                         if (file != null) {
-                            backStack.add(Route.BulkMovePassword(file.absolutePath))
+                            backStack.add(Route.BulkMovePassword(selected, file.absolutePath))
                         }
                     },
                     onNavigateBack = { backStack.pop() }
@@ -175,7 +166,7 @@ fun NavigationRoot(
             ) { key ->
                 BulkMovePasswordScreen(
                     onPasswordConfirmed = { password ->
-                        backStack.add(Route.BulkMoveConfirmation(key.filePath, password))
+                        backStack.add(Route.BulkMoveConfirmation(key.aliases, key.filePath, password))
                     },
                     onNavigateBack = { backStack.pop() }
                 )
@@ -184,10 +175,10 @@ fun NavigationRoot(
                 metadata = DialogSceneStrategy.dialog()
             ) { key ->
                 BulkMoveConfirmationScreen(
-                    selectedAliasesSize = viewModel.getSelectedBulkAliases().size,
+                    selectedAliasesSize = key.aliases.size,
                     fileName = File(key.filePath).name,
                     onConfirmMove = {
-                        viewModel.moveSelectedAliases(File(key.filePath), key.password)
+                        resultStore.setResult("bulk_move_result", DialogResult.BulkMove(key.aliases, File(key.filePath), key.password))
                         backStack.pop()
                         backStack.pop()
                         backStack.pop()

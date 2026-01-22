@@ -27,11 +27,11 @@ sealed interface Route : NavKey {
     data class MoveConfirmation(val alias: String, val filePath: String, val password: String) : Route
 
     @Serializable
-    data object BulkMoveSelect : Route
+    data class BulkMoveSelect(val aliases: List<String>) : Route
 
     @Serializable
-    data class BulkMovePassword(val filePath: String) : Route
+    data class BulkMovePassword(val aliases: List<String>, val filePath: String) : Route
 
     @Serializable
-    data class BulkMoveConfirmation(val filePath: String, val password: String) : Route
+    data class BulkMoveConfirmation(val aliases: List<String>, val filePath: String, val password: String) : Route
 }
