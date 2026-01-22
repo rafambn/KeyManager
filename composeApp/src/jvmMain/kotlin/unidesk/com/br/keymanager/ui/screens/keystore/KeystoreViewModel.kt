@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.ui.keystore
+package unidesk.com.br.keymanager.ui.screens.keystore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -18,6 +18,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeystoreRepository
+import java.awt.FileDialog
+import java.awt.Frame
 import java.io.File
 
 class KeystoreViewModel(
@@ -25,6 +27,16 @@ class KeystoreViewModel(
 ) : ViewModel(), KeystoreEventsProvider {
 
     private val _state = MutableStateFlow(KeystoreState())
+    private var selectedBulkAliases = mutableListOf<String>()
+
+    fun getSelectedBulkAliases(): List<String> = selectedBulkAliases.toList()
+    fun setSelectedBulkAliases(aliases: List<String>) {
+        selectedBulkAliases.clear()
+        selectedBulkAliases.addAll(aliases)
+    }
+    fun clearSelectedBulkAliases() {
+        selectedBulkAliases.clear()
+    }
     
     val state = _state
         .onStart {
@@ -141,7 +153,8 @@ class KeystoreViewModel(
         // Not used anymore
     }
 
-    fun moveSelectedAliases(aliasesToMove: List<String>, targetFile: File, targetPassword: String) {
+    fun moveSelectedAliases(targetFile: File, targetPassword: String) {
+        val aliasesToMove = selectedBulkAliases.toList()
         if (aliasesToMove.isEmpty()) return
 
         viewModelScope.launch {
@@ -166,6 +179,7 @@ class KeystoreViewModel(
             } else {
                 _state.update { it.copy(isLoading = false) }
             }
+            clearSelectedBulkAliases()
             refreshAliases()
         }
     }
