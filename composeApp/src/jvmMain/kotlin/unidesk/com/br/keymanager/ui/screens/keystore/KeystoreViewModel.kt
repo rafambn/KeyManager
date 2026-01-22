@@ -24,7 +24,7 @@ import java.io.File
 
 class KeystoreViewModel(
     private val repository: KeystoreRepository
-) : ViewModel(), KeystoreEventsProvider {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(KeystoreState())
     private var selectedBulkAliases = mutableListOf<String>()
@@ -49,7 +49,7 @@ class KeystoreViewModel(
         )
 
     private val _eventChannel = Channel<KeystoreEvents>(Channel.BUFFERED)
-    override val eventChannel = _eventChannel.receiveAsFlow()
+    val eventChannel = _eventChannel.receiveAsFlow()
 
     fun loadKeystoreFile(file: File) {
         _state.update { it.copy(currentFile = file, errorMessage = null) }
