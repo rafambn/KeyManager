@@ -8,18 +8,15 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeystoreRepository
-import java.awt.FileDialog
-import java.awt.Frame
 import java.io.File
 
 class KeystoreViewModel(
@@ -27,6 +24,8 @@ class KeystoreViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KeystoreState())
+    val state = _state.asStateFlow()
+
     private var selectedBulkAliases = mutableListOf<String>()
 
     fun getSelectedBulkAliases(): List<String> = selectedBulkAliases.toList()
@@ -37,22 +36,14 @@ class KeystoreViewModel(
     fun clearSelectedBulkAliases() {
         selectedBulkAliases.clear()
     }
-    
-    val state = _state
-        .onStart {
-            // Perform any initial data loading here if necessary
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = KeystoreState()
-        )
 
     private val _eventChannel = Channel<KeystoreEvents>(Channel.BUFFERED)
     val eventChannel = _eventChannel.receiveAsFlow()
 
     fun loadKeystoreFile(file: File) {
-        _state.update { it.copy(currentFile = file, errorMessage = null) }
+        _state.update { 
+            it.copy(currentFile = file, errorMessage = null, isKeystoreLoaded = false, aliases = emptyList())
+        }
     }
 
     fun unlockKeystore(password: String) {

@@ -1,11 +1,10 @@
 package unidesk.com.br.keymanager.ui.screens.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 
@@ -30,15 +29,16 @@ fun rememberResultStore(): ResultStore {
         ResultStore()
     }
 }
+
 class ResultStore {
 
-    val resultStateMap: MutableMap<String, MutableState<Any?>> = mutableMapOf()
+    val resultStateMap = mutableStateMapOf<String, Any?>()
 
     inline fun <reified T> getResultState(resultKey: String = T::class.toString()): T? =
-        resultStateMap[resultKey]?.value as? T
+        resultStateMap[resultKey] as? T
 
     inline fun <reified T> setResult(resultKey: String = T::class.toString(), result: T) {
-        resultStateMap[resultKey] = mutableStateOf(result)
+        resultStateMap[resultKey] = result
     }
 
     inline fun <reified T> removeResult(resultKey: String = T::class.toString()) {
@@ -48,6 +48,6 @@ class ResultStore {
 
 private fun ResultStoreSaver(): Saver<ResultStore, *> =
     Saver(
-        save = { it.resultStateMap },
+        save = { it.resultStateMap.toMap() },
         restore = { ResultStore().apply { resultStateMap.putAll(it) } },
     )

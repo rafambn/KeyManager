@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import unidesk.com.br.keymanager.ui.screens.navigation.DialogResult
 import unidesk.com.br.keymanager.ui.screens.navigation.ResultStore
@@ -20,7 +21,7 @@ fun KeystoreScreen(
     onMove: (String, File) -> Unit
 ) {
     val viewModel = viewModel<KeystoreViewModel>(factory = KeystoreViewModel.Factory)
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val unlockPassword = resultStore.getResultState<String?>("unlock_password")
     LaunchedEffect(unlockPassword) {
