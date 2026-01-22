@@ -4,14 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.modules.SerializersModule
@@ -47,152 +50,150 @@ fun NavigationRoot(
         Route.Main
     )
 
+    val dialogStrategy = remember { DialogSceneStrategy<NavKey>() }
+
     NavDisplay(
         modifier = modifier,
         backStack = backStack,
+        onBack = { backStack.pop() },
+        sceneStrategy = dialogStrategy,
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
         ),
-        entryProvider = { key ->
-            when (key) {
-                is Route.Main -> {
-                    NavEntry(key) {
-                        KeystoreContent(
-                            state = state,
-                            onBulkMoveSelect = { backStack.add(Route.BulkMoveSelect) },
-                            onCreateKey = { backStack.add(Route.CreateKey) },
-                            onRefresh = { viewModel.refresh() },
-                            onOpenKeystore = { file ->
-                                backStack.add(Route.Password("Unlock Keystore", file.absolutePath))
-                            },
-                            onRename = { alias ->
-                                backStack.add(Route.Rename(alias))
-                            },
-                            onDelete = { alias ->
-                                backStack.add(Route.DeleteConfirmation(alias))
-                            },
-                            onMove = { alias, destination ->
-                                backStack.add(Route.MovePassword(alias, destination.absolutePath))
-                            },
-                            onClearError = { viewModel.clearError() }
-                        )
-                    }
-                }
-                is Route.Password -> {
-                    NavEntry(key) {
-                        PasswordScreen(
-                            title = key.title,
-                            onUnlock = { password ->
-                                viewModel.loadKeystoreFile(File(key.filePath))
-                                viewModel.unlockKeystore(password)
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.CreateKey -> {
-                    NavEntry(key) {
-                        CreateKeyScreen(
-                            onCreateKey = { alias, dn, validity ->
-                                viewModel.createKey(alias, dn, validity)
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.Rename -> {
-                    NavEntry(key) {
-                        RenameScreen(
-                            alias = key.alias,
-                            onRenameConfirm = { newAlias ->
-                                viewModel.renameAlias(key.alias, newAlias)
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.DeleteConfirmation -> {
-                    NavEntry(key) {
-                        DeleteConfirmationScreen(
-                            alias = key.alias,
-                            onDeleteConfirm = {
-                                viewModel.deleteAlias(key.alias)
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.MovePassword -> {
-                    NavEntry(key) {
-                        MovePasswordScreen(
-                            onPasswordConfirmed = { password ->
-                                backStack.add(Route.MoveConfirmation(key.alias, key.filePath, password))
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.MoveConfirmation -> {
-                    NavEntry(key) {
-                        MoveConfirmationScreen(
-                            alias = key.alias,
-                            fileName = File(key.filePath).name,
-                            onMoveConfirm = {
-                                viewModel.moveAlias(key.alias, File(key.filePath), key.password)
-                                // Pop both confirmation and password screen
-                                backStack.pop()
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.BulkMoveSelect -> {
-                    NavEntry(key) {
-                        BulkMoveSelectScreen(
-                            aliases = state.aliases.map { it.alias },
-                            onAliasesSelected = { selected ->
-                                viewModel.setSelectedBulkAliases(selected)
-                                val file = selectDestinationFile("Select Destination Keystore")
-                                if (file != null) {
-                                    backStack.add(Route.BulkMovePassword(file.absolutePath))
-                                }
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.BulkMovePassword -> {
-                    NavEntry(key) {
-                        BulkMovePasswordScreen(
-                            onPasswordConfirmed = { password ->
-                                backStack.add(Route.BulkMoveConfirmation(key.filePath, password))
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                is Route.BulkMoveConfirmation -> {
-                    NavEntry(key) {
-                        BulkMoveConfirmationScreen(
-                            selectedAliasesSize = viewModel.getSelectedBulkAliases().size,
-                            fileName = File(key.filePath).name,
-                            onConfirmMove = {
-                                viewModel.moveSelectedAliases(File(key.filePath), key.password)
-                                backStack.pop()
-                                backStack.pop()
-                                backStack.pop()
-                            },
-                            onNavigateBack = { backStack.pop() }
-                        )
-                    }
-                }
-                else -> error("Unknown Route: $key")
+        entryProvider = entryProvider {
+            entry<Route.Main> {
+                KeystoreContent(
+                    state = state,
+                    onBulkMoveSelect = { backStack.add(Route.BulkMoveSelect) },
+                    onCreateKey = { backStack.add(Route.CreateKey) },
+                    onRefresh = { viewModel.refresh() },
+                    onOpenKeystore = { file ->
+                        backStack.add(Route.Password("Unlock Keystore", file.absolutePath))
+                    },
+                    onRename = { alias ->
+                        backStack.add(Route.Rename(alias))
+                    },
+                    onDelete = { alias ->
+                        backStack.add(Route.DeleteConfirmation(alias))
+                    },
+                    onMove = { alias, destination ->
+                        backStack.add(Route.MovePassword(alias, destination.absolutePath))
+                    },
+                    onClearError = { viewModel.clearError() }
+                )
+            }
+            entry<Route.Password>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                PasswordScreen(
+                    title = key.title,
+                    onUnlock = { password ->
+                        viewModel.loadKeystoreFile(File(key.filePath))
+                        viewModel.unlockKeystore(password)
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.CreateKey>(
+                metadata = DialogSceneStrategy.dialog()
+            ) {
+                CreateKeyScreen(
+                    onCreateKey = { alias, dn, validity ->
+                        viewModel.createKey(alias, dn, validity)
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.Rename>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                RenameScreen(
+                    alias = key.alias,
+                    onRenameConfirm = { newAlias ->
+                        viewModel.renameAlias(key.alias, newAlias)
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.DeleteConfirmation>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                DeleteConfirmationScreen(
+                    alias = key.alias,
+                    onDeleteConfirm = {
+                        viewModel.deleteAlias(key.alias)
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.MovePassword>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                MovePasswordScreen(
+                    onPasswordConfirmed = { password ->
+                        backStack.add(Route.MoveConfirmation(key.alias, key.filePath, password))
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.MoveConfirmation>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                MoveConfirmationScreen(
+                    alias = key.alias,
+                    fileName = File(key.filePath).name,
+                    onMoveConfirm = {
+                        viewModel.moveAlias(key.alias, File(key.filePath), key.password)
+                        backStack.pop()
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.BulkMoveSelect>(
+                metadata = DialogSceneStrategy.dialog()
+            ) {
+                BulkMoveSelectScreen(
+                    aliases = state.aliases.map { it.alias },
+                    onAliasesSelected = { selected ->
+                        viewModel.setSelectedBulkAliases(selected)
+                        val file = selectDestinationFile("Select Destination Keystore")
+                        if (file != null) {
+                            backStack.add(Route.BulkMovePassword(file.absolutePath))
+                        }
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.BulkMovePassword>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                BulkMovePasswordScreen(
+                    onPasswordConfirmed = { password ->
+                        backStack.add(Route.BulkMoveConfirmation(key.filePath, password))
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
+            }
+            entry<Route.BulkMoveConfirmation>(
+                metadata = DialogSceneStrategy.dialog()
+            ) { key ->
+                BulkMoveConfirmationScreen(
+                    selectedAliasesSize = viewModel.getSelectedBulkAliases().size,
+                    fileName = File(key.filePath).name,
+                    onConfirmMove = {
+                        viewModel.moveSelectedAliases(File(key.filePath), key.password)
+                        backStack.pop()
+                        backStack.pop()
+                        backStack.pop()
+                    },
+                    onNavigateBack = { backStack.pop() }
+                )
             }
         }
     )
