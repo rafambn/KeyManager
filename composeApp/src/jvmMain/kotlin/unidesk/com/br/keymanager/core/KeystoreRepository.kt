@@ -28,7 +28,7 @@ class KeystoreRepository {
 
     fun getKeys(): List<KeyInfo> {
         val ks = keyStore ?: return emptyList()
-        return ks.aliases().toList().map { alias ->
+        return ks.aliases().toList().sorted().map { alias ->
             val isKey = ks.isKeyEntry(alias)
             val isCert = ks.isCertificateEntry(alias)
             val type = when {
@@ -47,7 +47,7 @@ class KeystoreRepository {
 
     fun getAliases(): List<String> {
         val ks = keyStore ?: return emptyList()
-        return ks.aliases().toList()
+        return ks.aliases().toList().sorted()
     }
 
     fun deleteAlias(alias: String) {
