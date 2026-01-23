@@ -4,6 +4,10 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import unidesk.com.br.keymanager.core.KeyAlgorithm
+import unidesk.com.br.keymanager.core.SignatureAlgorithm
+import unidesk.com.br.keymanager.core.ECCurve
+import unidesk.com.br.keymanager.core.KeystoreFormat
 
 object KeyToolAPI {
 
@@ -75,24 +79,37 @@ object KeyToolAPI {
         keypass: String,
         dname: String,
         validity: Int,
-        keyalg: String = "RSA",
-        keysize: Int = 2048,
-        sigalg: String? = null
+        keyAlgorithm: KeyAlgorithm = KeyAlgorithm.RSA,
+        keySize: Int? = null,
+        signatureAlgorithm: SignatureAlgorithm? = null,
+        ecCurve: ECCurve? = null
     ): KeytoolResult<Unit> {
+        // Determine final key size
+        val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
+
+        // Validate key size for algorithm
+        if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
+            return KeytoolResult.Error(
+                "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
+                -1
+            )
+        }
+
+        // Auto-select signature algorithm if not provided
+        val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, finalKeySize)
+
         val args = mutableListOf(
             "-genkeypair",
             "-alias", alias,
             "-dname", dname,
             "-validity", validity.toString(),
-            "-keyalg", keyalg,
-            "-keysize", keysize.toString(),
+            "-keyalg", keyAlgorithm.cliName,
+            "-keysize", finalKeySize.toString(),
+            "-sigalg", finalSigAlg.cliName,
             "-keystore", keystore.absolutePath,
             "-storepass", storepass,
             "-keypass", keypass
         )
-        if (sigalg != null) {
-            args.addAll(listOf("-sigalg", sigalg))
-        }
 
         val result = execute(*args.toTypedArray())
 
@@ -109,14 +126,33 @@ object KeyToolAPI {
         storepass: String,
         alias: String,
         keypass: String,
-        keyalg: String,
-        keysize: Int
+        keyAlgorithm: KeyAlgorithm,
+        keySize: Int? = null
     ): KeytoolResult<Unit> {
+        // Determine final key size
+        val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
+
+        // Validate key size for algorithm
+        if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
+            return KeytoolResult.Error(
+                "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
+                -1
+            )
+        }
+
+        // Validate algorithm supports symmetric keys
+        if (keyAlgorithm !in listOf(KeyAlgorithm.AES, KeyAlgorithm.TRIPLE_DES)) {
+            return KeytoolResult.Error(
+                "${keyAlgorithm.displayName} is not a symmetric key algorithm (valid: AES, TripleDES)",
+                -1
+            )
+        }
+
         val args = listOf(
             "-genseckey",
             "-alias", alias,
-            "-keyalg", keyalg,
-            "-keysize", keysize.toString(),
+            "-keyalg", keyAlgorithm.cliName,
+            "-keysize", finalKeySize.toString(),
             "-keystore", keystore.absolutePath,
             "-storepass", storepass,
             "-keypass", keypass
@@ -140,7 +176,7 @@ object KeyToolAPI {
         infile: File,
         outfile: File,
         validity: Int? = null,
-        sigalg: String? = null
+        signatureAlgorithm: SignatureAlgorithm? = null
     ): KeytoolResult<Unit> {
         val args = mutableListOf(
             "-gencert",
@@ -156,8 +192,8 @@ object KeyToolAPI {
         if (validity != null) {
             args.addAll(listOf("-validity", validity.toString()))
         }
-        if (sigalg != null) {
-            args.addAll(listOf("-sigalg", sigalg))
+        if (signatureAlgorithm != null) {
+            args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
 
         val result = execute(*args.toTypedArray())
@@ -176,7 +212,7 @@ object KeyToolAPI {
         alias: String,
         keypass: String?,
         file: File,
-        sigalg: String? = null
+        signatureAlgorithm: SignatureAlgorithm? = null
     ): KeytoolResult<Unit> {
         val args = mutableListOf(
             "-certreq",
@@ -188,8 +224,8 @@ object KeyToolAPI {
         if (keypass != null) {
             args.addAll(listOf("-keypass", keypass))
         }
-        if (sigalg != null) {
-            args.addAll(listOf("-sigalg", sigalg))
+        if (signatureAlgorithm != null) {
+            args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
 
         val result = execute(*args.toTypedArray())

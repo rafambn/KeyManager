@@ -291,7 +291,7 @@ class KeyToolAPITest {
         setupMockFactory("", "", 0)
         val result = KeyToolAPI.genKeyPair(
             File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
-            "CN=Test, O=TestOrg, C=US", 365, sigalg = "SHA512withRSA"
+            "CN=Test, O=TestOrg, C=US", 365, signatureAlgorithm = SignatureAlgorithm.SHA512_WITH_RSA
         )
 
         assertTrue(result is KeytoolResult.Success)
@@ -302,7 +302,7 @@ class KeyToolAPITest {
         setupMockFactory("", "", 0)
         val result = KeyToolAPI.genKeyPair(
             File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
-            "CN=Test, O=TestOrg, C=US", 365, keysize = 4096
+            "CN=Test, O=TestOrg, C=US", 365, keySize = 4096
         )
 
         assertTrue(result is KeytoolResult.Success)
@@ -314,7 +314,7 @@ class KeyToolAPITest {
     fun testGenSecKeySuccess() = runTest {
         setupMockFactory("", "", 0)
         val result = KeyToolAPI.genSecKey(
-            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123", "AES", 256
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123", KeyAlgorithm.AES, 256
         )
 
         assertTrue(result is KeytoolResult.Success)
@@ -324,7 +324,7 @@ class KeyToolAPITest {
     fun testGenSecKeyInvalidAlgorithm() = runTest {
         setupMockFactory("", "keytool error: java.lang.Exception: -keyalg must be specified", 1)
         val result = KeyToolAPI.genSecKey(
-            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123", "INVALID", 256
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123", KeyAlgorithm.RSA, 256
         )
 
         assertTrue(result is KeytoolResult.Error)
@@ -392,7 +392,7 @@ class KeyToolAPITest {
         setupMockFactory("", "", 0)
         val result = KeyToolAPI.certReq(
             File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
-            File("/tmp/req.csr"), "SHA512withRSA"
+            File("/tmp/req.csr"), SignatureAlgorithm.SHA512_WITH_RSA
         )
 
         assertTrue(result is KeytoolResult.Success)
