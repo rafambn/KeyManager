@@ -10,7 +10,7 @@ class KeystoreRepository {
     // In-memory cache of aliases with their key passwords (if known)
     private val keyPasswordCache = mutableMapOf<String, String>()
 
-    fun loadKeystore(file: File, password: String) {
+    suspend fun loadKeystore(file: File, password: String) {
         // Use KeyToolAPI.list() to validate the keystore and password
         when (val result = KeyToolAPI.list(file, password)) {
             is KeytoolResult.Success -> {
@@ -24,7 +24,7 @@ class KeystoreRepository {
         }
     }
 
-    fun getKeys(): List<KeyInfo> {
+    suspend fun getKeys(): List<KeyInfo> {
         val file = currentFile ?: return emptyList()
         val password = currentStorePassword ?: return emptyList()
 
@@ -55,7 +55,7 @@ class KeystoreRepository {
         }
     }
 
-    fun getAliases(): List<String> {
+    suspend fun getAliases(): List<String> {
         val file = currentFile ?: return emptyList()
         val password = currentStorePassword ?: return emptyList()
 
@@ -68,7 +68,7 @@ class KeystoreRepository {
         }
     }
 
-    fun deleteAlias(alias: String) {
+    suspend fun deleteAlias(alias: String) {
         val file = currentFile ?: return
         val password = currentStorePassword ?: return
 
@@ -82,7 +82,7 @@ class KeystoreRepository {
         }
     }
 
-    fun moveAlias(alias: String, targetFile: File, targetPassword: String) {
+    suspend fun moveAlias(alias: String, targetFile: File, targetPassword: String) {
         val sourceFile = currentFile ?: throw IllegalStateException("Source keystore not loaded")
         val sourcePassword = currentStorePassword ?: throw IllegalStateException("Source password not set")
 
@@ -116,7 +116,7 @@ class KeystoreRepository {
         }
     }
 
-    fun renameAlias(oldAlias: String, newAlias: String, keyPassword: String? = null) {
+    suspend fun renameAlias(oldAlias: String, newAlias: String, keyPassword: String? = null) {
         val file = currentFile ?: return
         val password = currentStorePassword ?: return
 
@@ -148,7 +148,7 @@ class KeystoreRepository {
         }
     }
 
-    fun addCertificate(alias: String, dn: String, validityDays: Int, keyPassword: String? = null) {
+    suspend fun addCertificate(alias: String, dn: String, validityDays: Int, keyPassword: String? = null) {
         val file = currentFile ?: return
         val password = currentStorePassword ?: return
 

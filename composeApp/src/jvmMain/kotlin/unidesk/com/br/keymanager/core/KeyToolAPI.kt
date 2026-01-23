@@ -2,20 +2,22 @@ package unidesk.com.br.keymanager.core
 
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object KeyToolAPI {
 
     private data class RawResult(val stdout: String, val stderr: String, val exitCode: Int)
 
-    private fun getKeytoolPath(): String {
+    private val keytoolPath: String by lazy {
         val javaHome = System.getProperty("java.home")
         val isWindows = System.getProperty("os.name").lowercase().contains("windows")
         val executable = if (isWindows) "keytool.exe" else "keytool"
-        return "$javaHome${File.separator}bin${File.separator}$executable"
+        "$javaHome${File.separator}bin${File.separator}$executable"
     }
 
-    private fun execute(vararg args: String): RawResult {
-        val command = listOf(getKeytoolPath()) + args.toList()
+    private suspend fun execute(vararg args: String): RawResult = withContext(Dispatchers.IO) {
+        val command = listOf(keytoolPath) + args.toList()
         val processBuilder = ProcessBuilder(command)
         processBuilder.redirectErrorStream(false)
 
@@ -29,7 +31,7 @@ object KeyToolAPI {
         val stderr = process.errorStream.bufferedReader().readText()
         val completed = process.waitFor(60, TimeUnit.SECONDS)
 
-        return if (completed) {
+        if (completed) {
             RawResult(stdout, stderr, process.exitValue())
         } else {
             process.destroyForcibly()
@@ -38,7 +40,7 @@ object KeyToolAPI {
     }
 
     // ===== 1. LIST → KeystoreInfo =====
-    fun list(
+    suspend fun list(
         keystore: File,
         storepass: String,
         verbose: Boolean = true
@@ -56,7 +58,7 @@ object KeyToolAPI {
     }
 
     // ===== 2. GENKEYPAIR → Unit =====
-    fun genKeyPair(
+    suspend fun genKeyPair(
         keystore: File,
         storepass: String,
         alias: String,
@@ -92,7 +94,7 @@ object KeyToolAPI {
     }
 
     // ===== 3. GENSECKEY → Unit =====
-    fun genSecKey(
+    suspend fun genSecKey(
         keystore: File,
         storepass: String,
         alias: String,
@@ -120,7 +122,7 @@ object KeyToolAPI {
     }
 
     // ===== 4. GENCERT → Unit =====
-    fun genCert(
+    suspend fun genCert(
         keystore: File,
         storepass: String,
         alias: String,
@@ -158,7 +160,7 @@ object KeyToolAPI {
     }
 
     // ===== 5. CERTREQ → Unit =====
-    fun certReq(
+    suspend fun certReq(
         keystore: File,
         storepass: String,
         alias: String,
@@ -190,7 +192,7 @@ object KeyToolAPI {
     }
 
     // ===== 6. EXPORTCERT → Unit =====
-    fun exportCert(
+    suspend fun exportCert(
         keystore: File,
         storepass: String,
         alias: String,
@@ -218,7 +220,7 @@ object KeyToolAPI {
     }
 
     // ===== 7. IMPORTCERT → Unit =====
-    fun importCert(
+    suspend fun importCert(
         keystore: File,
         storepass: String,
         alias: String,
@@ -254,7 +256,7 @@ object KeyToolAPI {
     }
 
     // ===== 8. IMPORTKEYSTORE → Unit =====
-    fun importKeystore(
+    suspend fun importKeystore(
         srcKeystore: File,
         srcStorepass: String,
         srcAlias: String?,
@@ -298,7 +300,7 @@ object KeyToolAPI {
     }
 
     // ===== 9. IMPORTPASS → Unit =====
-    fun importPass(
+    suspend fun importPass(
         keystore: File,
         storepass: String,
         alias: String,
@@ -322,7 +324,7 @@ object KeyToolAPI {
     }
 
     // ===== 10. DELETE → Unit =====
-    fun delete(
+    suspend fun delete(
         keystore: File,
         storepass: String,
         alias: String
@@ -344,7 +346,7 @@ object KeyToolAPI {
     }
 
     // ===== 11. CHANGEALIAS → Unit =====
-    fun changeAlias(
+    suspend fun changeAlias(
         keystore: File,
         storepass: String,
         alias: String,
@@ -372,7 +374,7 @@ object KeyToolAPI {
     }
 
     // ===== 12. KEYPASSWD → Unit =====
-    fun keyPasswd(
+    suspend fun keyPasswd(
         keystore: File,
         storepass: String,
         alias: String,
@@ -398,7 +400,7 @@ object KeyToolAPI {
     }
 
     // ===== 13. STOREPASSWD → Unit =====
-    fun storePasswd(
+    suspend fun storePasswd(
         keystore: File,
         storepass: String,
         newStorepass: String
@@ -420,7 +422,7 @@ object KeyToolAPI {
     }
 
     // ===== 14. PRINTCERT → CertificateInfo =====
-    fun printCert(
+    suspend fun printCert(
         file: File,
         verbose: Boolean = true
     ): KeytoolResult<CertificateInfo> {
@@ -437,7 +439,7 @@ object KeyToolAPI {
     }
 
     // ===== 15. PRINTCERTREQ → CertRequestInfo =====
-    fun printCertReq(
+    suspend fun printCertReq(
         file: File,
         verbose: Boolean = true
     ): KeytoolResult<CertRequestInfo> {
@@ -454,7 +456,7 @@ object KeyToolAPI {
     }
 
     // ===== 16. PRINTCRL → CrlInfo =====
-    fun printCrl(
+    suspend fun printCrl(
         file: File,
         verbose: Boolean = true
     ): KeytoolResult<CrlInfo> {

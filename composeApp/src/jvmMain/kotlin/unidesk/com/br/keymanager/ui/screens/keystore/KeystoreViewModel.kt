@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString
 import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.KeystoreRepository
@@ -49,12 +47,10 @@ class KeystoreViewModel(
     fun unlockKeystore(password: String) {
         val file = _state.value.currentFile ?: return
         _state.update { it.copy(isLoading = true, errorMessage = null) }
-        
+
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.loadKeystore(file, password)
-                }
+                repository.loadKeystore(file, password)
                 val newAliases = repository.getKeys()
                 _state.update { 
                     it.copy(
@@ -75,9 +71,7 @@ class KeystoreViewModel(
     fun deleteAlias(alias: String) {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.deleteAlias(alias)
-                }
+                repository.deleteAlias(alias)
                 refreshAliases()
             } catch (e: Exception) {
                 val msg = getString(Res.string.error_delete_alias).format(e.message ?: "")
@@ -90,9 +84,7 @@ class KeystoreViewModel(
     fun renameAlias(oldAlias: String, newAlias: String) {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.renameAlias(oldAlias, newAlias)
-                }
+                repository.renameAlias(oldAlias, newAlias)
                 refreshAliases()
             } catch (e: Exception) {
                 val msg = getString(Res.string.error_rename_alias).format(e.message ?: "")
@@ -105,9 +97,7 @@ class KeystoreViewModel(
     fun moveAlias(alias: String, targetFile: File, targetPassword: String) {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.moveAlias(alias, targetFile, targetPassword)
-                }
+                repository.moveAlias(alias, targetFile, targetPassword)
                 refreshAliases()
             } catch (e: Exception) {
                 val msg = getString(Res.string.error_move_alias).format(e.message ?: "")
@@ -120,9 +110,7 @@ class KeystoreViewModel(
     fun createKey(alias: String, dn: String, validityDays: Int) {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.addCertificate(alias, dn, validityDays)
-                }
+                repository.addCertificate(alias, dn, validityDays)
                 refreshAliases()
             } catch (e: Exception) {
                 val msg = getString(Res.string.error_create_key).format(e.message ?: "")
@@ -151,14 +139,12 @@ class KeystoreViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             val errors = mutableListOf<String>()
-            
-            withContext(Dispatchers.IO) {
-                aliasesToMove.forEach { alias ->
-                    try {
-                        repository.moveAlias(alias, targetFile, targetPassword)
-                    } catch (e: Exception) {
-                        errors.add("$alias: ${e.message}")
-                    }
+
+            aliasesToMove.forEach { alias ->
+                try {
+                    repository.moveAlias(alias, targetFile, targetPassword)
+                } catch (e: Exception) {
+                    errors.add("$alias: ${e.message}")
                 }
             }
 
@@ -178,14 +164,12 @@ class KeystoreViewModel(
     fun refresh() {
         val file = _state.value.currentFile ?: return
         val currentPassword = repository.getCurrentPassword()?.let { String(it) } ?: return
-        
+
         _state.update { it.copy(isLoading = true, errorMessage = null) }
-        
+
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    repository.loadKeystore(file, currentPassword)
-                }
+                repository.loadKeystore(file, currentPassword)
                 refreshAliases()
                 _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
@@ -196,7 +180,7 @@ class KeystoreViewModel(
         }
     }
 
-    private fun refreshAliases() {
+    private suspend fun refreshAliases() {
         val newAliases = repository.getKeys()
         _state.update { it.copy(aliases = newAliases) }
     }
