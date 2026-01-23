@@ -16,8 +16,8 @@ object KeyToolAPI {
         "$javaHome${File.separator}bin${File.separator}$executable"
     }
 
-    private suspend fun execute(vararg args: String): RawResult = withContext(Dispatchers.IO) {
-        val command = listOf(keytoolPath) + args.toList()
+    // For testing purposes - can be overridden to inject mock processes
+    internal var processFactory: (List<String>) -> Process = { command ->
         val processBuilder = ProcessBuilder(command)
         processBuilder.redirectErrorStream(false)
 
@@ -26,7 +26,12 @@ object KeyToolAPI {
         environment["LANG"] = "en_US.UTF-8"
         environment["LC_ALL"] = "en_US.UTF-8"
 
-        val process = processBuilder.start()
+        processBuilder.start()
+    }
+
+    private suspend fun execute(vararg args: String): RawResult = withContext(Dispatchers.IO) {
+        val command = listOf(keytoolPath) + args.toList()
+        val process = processFactory(command)
         val stdout = process.inputStream.bufferedReader().readText()
         val stderr = process.errorStream.bufferedReader().readText()
         val completed = process.waitFor(60, TimeUnit.SECONDS)
@@ -527,13 +532,18 @@ object KeyToolAPI {
             System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
         }
 
+        // Validate keystore has critical information
+        if (type.isEmpty() || type == "Unknown") {
+            throw IllegalArgumentException("Could not determine keystore type from output")
+        }
+
         // Log if any entries have missing critical fields
         entries.forEach { entry ->
             if (entry.alias.isBlank()) {
-                System.err.println("Warning: Parsed entry with blank alias")
+                throw IllegalArgumentException("Parsed entry with blank alias")
             }
             if (entry.entryType == EntryType.UNKNOWN) {
-                System.err.println("Warning: Could not determine entry type for alias '${entry.alias}'")
+                throw IllegalArgumentException("Could not determine entry type for alias '${entry.alias}'")
             }
         }
 
@@ -666,6 +676,11 @@ object KeyToolAPI {
             }
         }
 
+        // Validate critical fields are present
+        if (owner.isEmpty() || issuer.isEmpty() || serialNumber.isEmpty()) {
+            throw IllegalArgumentException("Missing critical certificate fields: owner=$owner, issuer=$issuer, serialNumber=$serialNumber")
+        }
+
         return CertificateInfo(owner, issuer, serialNumber, validFrom, validUntil, algorithm, fingerprints)
     }
 
@@ -689,6 +704,11 @@ object KeyToolAPI {
                     extensions.add(trimmed)
                 }
             }
+        }
+
+        // Validate critical fields are present
+        if (subject.isEmpty() || algorithm.isEmpty()) {
+            throw IllegalArgumentException("Missing critical certificate request fields: subject=$subject, algorithm=$algorithm")
         }
 
         return CertRequestInfo(subject, algorithm, extensions)
@@ -723,6 +743,11 @@ object KeyToolAPI {
                     revokedCerts.add(trimmed.substringAfter("Serial Number:").trim())
                 }
             }
+        }
+
+        // Validate critical fields are present
+        if (issuer.isEmpty() || thisUpdate.isEmpty()) {
+            throw IllegalArgumentException("Missing critical CRL fields: issuer=$issuer, thisUpdate=$thisUpdate")
         }
 
         return CrlInfo(issuer, thisUpdate, nextUpdate, revokedCerts)
