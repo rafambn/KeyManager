@@ -51,7 +51,12 @@ object KeyToolAPI {
         val result = execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
-            KeytoolResult.Success(parseListVerboseOutput(result.stdout))
+            try {
+                val parsed = parseListVerboseOutput(result.stdout)
+                KeytoolResult.Success(parsed)
+            } catch (e: Exception) {
+                KeytoolResult.Error("Failed to parse keystore list output: ${e.message}", -1)
+            }
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
@@ -432,7 +437,12 @@ object KeyToolAPI {
         val result = execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
-            KeytoolResult.Success(parseCertificateOutput(result.stdout))
+            try {
+                val parsed = parseCertificateOutput(result.stdout)
+                KeytoolResult.Success(parsed)
+            } catch (e: Exception) {
+                KeytoolResult.Error("Failed to parse certificate output: ${e.message}", -1)
+            }
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
@@ -449,7 +459,12 @@ object KeyToolAPI {
         val result = execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
-            KeytoolResult.Success(parseCertReqOutput(result.stdout))
+            try {
+                val parsed = parseCertReqOutput(result.stdout)
+                KeytoolResult.Success(parsed)
+            } catch (e: Exception) {
+                KeytoolResult.Error("Failed to parse certificate request output: ${e.message}", -1)
+            }
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
@@ -466,7 +481,12 @@ object KeyToolAPI {
         val result = execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
-            KeytoolResult.Success(parseCrlOutput(result.stdout))
+            try {
+                val parsed = parseCrlOutput(result.stdout)
+                KeytoolResult.Success(parsed)
+            } catch (e: Exception) {
+                KeytoolResult.Error("Failed to parse CRL output: ${e.message}", -1)
+            }
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
