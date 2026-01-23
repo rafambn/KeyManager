@@ -170,7 +170,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Success)
-        val keystoreInfo = (result as KeytoolResult.Success).data
+        val keystoreInfo = (result).data
         assertEquals("PKCS12", keystoreInfo.type)
         assertEquals("SUN", keystoreInfo.provider)
         assertEquals(2, keystoreInfo.entryCount)
@@ -186,22 +186,30 @@ class KeyToolAPITest {
 
     @Test
     fun testListWrongPassword() = runTest {
-        setupMockFactory("", "keytool error: java.lang.Exception: Keystore was tampered with, or password was incorrect", 1)
+        setupMockFactory(
+            "",
+            "keytool error: java.lang.Exception: Keystore was tampered with, or password was incorrect",
+            1
+        )
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), "wrongpass")
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertEquals(1, error.exitCode)
         assertTrue(error.message.contains("password was incorrect"))
     }
 
     @Test
     fun testListKeystoreNotFound() = runTest {
-        setupMockFactory("", "keytool error: java.io.FileNotFoundException: /tmp/test.jks (No such file or directory)", 1)
+        setupMockFactory(
+            "",
+            "keytool error: java.io.FileNotFoundException: /tmp/test.jks (No such file or directory)",
+            1
+        )
         val result = KeyToolAPI.list(File("/nonexistent.jks"), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertTrue(error.message.contains("No such file or directory"))
     }
 
@@ -211,7 +219,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertTrue(error.message.contains("Failed to parse"))
     }
 
@@ -230,7 +238,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Success)
-        val keystoreInfo = (result as KeytoolResult.Success).data
+        val keystoreInfo = (result).data
         assertEquals(2, keystoreInfo.entries.size)
 
         // Check second entry
@@ -260,12 +268,16 @@ class KeyToolAPITest {
         )
 
         assertTrue(result is KeytoolResult.Error)
-        assertTrue((result as KeytoolResult.Error).message.contains("DName"))
+        assertTrue((result).message.contains("DName"))
     }
 
     @Test
     fun testGenKeyPairAliasAlreadyExists() = runTest {
-        setupMockFactory("", "keytool error: java.lang.Exception: Key pair not generated, alias <mykey> already exists", 1)
+        setupMockFactory(
+            "",
+            "keytool error: java.lang.Exception: Key pair not generated, alias <mykey> already exists",
+            1
+        )
         val result = KeyToolAPI.genKeyPair(
             File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
             "CN=Test, O=TestOrg, C=US", 365
@@ -607,7 +619,11 @@ class KeyToolAPITest {
 
     @Test
     fun testStorePasswdWrongPassword() = runTest {
-        setupMockFactory("", "keytool error: java.lang.Exception: Keystore was tampered with, or password was incorrect", 1)
+        setupMockFactory(
+            "",
+            "keytool error: java.lang.Exception: Keystore was tampered with, or password was incorrect",
+            1
+        )
         val result = KeyToolAPI.storePasswd(
             File(TEST_KEYSTORE_PATH), "wrongpass", "newpass"
         )
@@ -623,7 +639,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCert(File(TEST_CERT_PATH))
 
         assertTrue(result is KeytoolResult.Success)
-        val certInfo = (result as KeytoolResult.Success).data
+        val certInfo = (result).data
         assertEquals("CN=Test Certificate, O=Test Organization, C=US", certInfo.owner)
         assertEquals("CN=Test Certificate, O=Test Organization, C=US", certInfo.issuer)
         assertEquals("abc123def456", certInfo.serialNumber)
@@ -646,7 +662,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCert(File(TEST_CERT_PATH))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertTrue(error.message.contains("Failed to parse"))
     }
 
@@ -658,7 +674,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCertReq(File("/tmp/req.csr"))
 
         assertTrue(result is KeytoolResult.Success)
-        val csrInfo = (result as KeytoolResult.Success).data
+        val csrInfo = (result).data
         assertEquals("CN=Test CSR, O=Test Org, C=US", csrInfo.subject)
         assertTrue(csrInfo.algorithm.contains("sha256"))
         assertTrue(csrInfo.extensions.isNotEmpty())
@@ -678,7 +694,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCertReq(File("/tmp/req.csr"))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertTrue(error.message.contains("Failed to parse"))
     }
 
@@ -690,7 +706,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCrl(File("/tmp/crl.pem"))
 
         assertTrue(result is KeytoolResult.Success)
-        val crlInfo = (result as KeytoolResult.Success).data
+        val crlInfo = (result).data
         assertEquals("CN=Test CA, O=Test Organization, C=US", crlInfo.issuer)
         assertTrue(crlInfo.thisUpdate.contains("Jan"))
         assertTrue(crlInfo.nextUpdate?.contains("Feb") ?: false)
@@ -709,7 +725,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCrl(File("/tmp/crl.pem"))
 
         assertTrue(result is KeytoolResult.Success)
-        val crlInfo = (result as KeytoolResult.Success).data
+        val crlInfo = (result).data
         assertEquals(0, crlInfo.revokedCertificates.size)
     }
 
@@ -727,7 +743,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCrl(File("/tmp/crl.pem"))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result as KeytoolResult.Error
+        val error = result
         assertTrue(error.message.contains("Failed to parse"))
     }
 }
