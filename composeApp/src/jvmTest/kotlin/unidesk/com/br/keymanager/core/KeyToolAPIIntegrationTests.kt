@@ -3,6 +3,9 @@ package unidesk.com.br.keymanager.core
 import java.io.File
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
+import unidesk.com.br.keymanager.core.api.KeyToolAPI
+import unidesk.com.br.keymanager.core.model.*
+import unidesk.com.br.keymanager.core.domain.*
 
 /**
  * Phase 2 Integration Tests: Real keytool + real keystores

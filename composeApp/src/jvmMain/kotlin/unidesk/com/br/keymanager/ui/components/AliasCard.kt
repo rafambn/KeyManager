@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import keymanager.composeapp.generated.resources.*
-import unidesk.com.br.keymanager.core.KeyInfo
+import unidesk.com.br.keymanager.core.model.KeyInfo
 
 @Composable
 fun AliasCard(

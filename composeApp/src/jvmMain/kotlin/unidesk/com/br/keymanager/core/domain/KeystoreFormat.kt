@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.domain
 
 /**
  * Type-safe enumeration of keystore formats supported by keytool.

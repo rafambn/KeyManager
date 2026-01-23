@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.domain
 
 // Entry types in a keystore
 enum class EntryType {

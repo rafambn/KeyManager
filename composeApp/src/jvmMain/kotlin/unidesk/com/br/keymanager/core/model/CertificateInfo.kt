@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.model
 
 // Certificate info (for printCert)
 data class CertificateInfo(

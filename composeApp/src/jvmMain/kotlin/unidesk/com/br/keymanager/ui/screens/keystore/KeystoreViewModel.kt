@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import keymanager.composeapp.generated.resources.*
-import unidesk.com.br.keymanager.core.KeystoreRepository
+import unidesk.com.br.keymanager.core.repository.KeystoreRepository
 import java.io.File
 
 class KeystoreViewModel(

@@ -1,48 +1,11 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.api
 
 import java.io.File
-import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import unidesk.com.br.keymanager.core.model.*
+import unidesk.com.br.keymanager.core.domain.*
+import unidesk.com.br.keymanager.core.KeytoolResult
 
 object KeyToolAPI {
-
-    private data class RawResult(val stdout: String, val stderr: String, val exitCode: Int)
-
-    private val keytoolPath: String by lazy {
-        val javaHome = System.getProperty("java.home")
-        val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-        val executable = if (isWindows) "keytool.exe" else "keytool"
-        "$javaHome${File.separator}bin${File.separator}$executable"
-    }
-
-    // For testing purposes - can be overridden to inject mock processes
-    internal var processFactory: (List<String>) -> Process = { command ->
-        val processBuilder = ProcessBuilder(command)
-        processBuilder.redirectErrorStream(false)
-
-        // Force English locale for consistent keytool output
-        val environment = processBuilder.environment()
-        environment["LANG"] = "en_US.UTF-8"
-        environment["LC_ALL"] = "en_US.UTF-8"
-
-        processBuilder.start()
-    }
-
-    private suspend fun execute(vararg args: String): RawResult = withContext(Dispatchers.IO) {
-        val command = listOf(keytoolPath) + args.toList()
-        val process = processFactory(command)
-        val stdout = process.inputStream.bufferedReader().readText()
-        val stderr = process.errorStream.bufferedReader().readText()
-        val completed = process.waitFor(60, TimeUnit.SECONDS)
-
-        if (completed) {
-            RawResult(stdout, stderr, process.exitValue())
-        } else {
-            process.destroyForcibly()
-            RawResult("", "Process timed out", -1)
-        }
-    }
 
     // ===== 1. LIST → KeystoreInfo =====
     suspend fun list(
@@ -53,11 +16,11 @@ object KeyToolAPI {
         val args = mutableListOf("-list", "-keystore", keystore.absolutePath, "-storepass", storepass)
         if (verbose) args.add("-v")
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             try {
-                val parsed = parseListVerboseOutput(result.stdout)
+                val parsed = KeyToolParser.parseListVerboseOutput(result.stdout)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse keystore list output: ${e.message}", -1)
@@ -107,7 +70,7 @@ object KeyToolAPI {
             "-keypass", keypass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -154,7 +117,7 @@ object KeyToolAPI {
             "-keypass", keypass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -192,7 +155,7 @@ object KeyToolAPI {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -224,7 +187,7 @@ object KeyToolAPI {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -252,7 +215,7 @@ object KeyToolAPI {
             args.add("-rfc")
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -288,7 +251,7 @@ object KeyToolAPI {
             args.add("-noprompt")
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -332,7 +295,7 @@ object KeyToolAPI {
             args.add("-noprompt")
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -356,7 +319,7 @@ object KeyToolAPI {
             "-keypass", keypass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -378,7 +341,7 @@ object KeyToolAPI {
             "-storepass", storepass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -406,7 +369,7 @@ object KeyToolAPI {
             args.addAll(listOf("-keypass", keypass))
         }
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -432,7 +395,7 @@ object KeyToolAPI {
             "-storepass", storepass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -454,7 +417,7 @@ object KeyToolAPI {
             "-storepass", storepass
         )
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -471,11 +434,11 @@ object KeyToolAPI {
         val args = mutableListOf("-printcert", "-file", file.absolutePath)
         if (verbose) args.add("-v")
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             try {
-                val parsed = parseCertificateOutput(result.stdout)
+                val parsed = KeyToolParser.parseCertificateOutput(result.stdout)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse certificate output: ${e.message}", -1)
@@ -493,11 +456,11 @@ object KeyToolAPI {
         val args = mutableListOf("-printcertreq", "-file", file.absolutePath)
         if (verbose) args.add("-v")
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             try {
-                val parsed = parseCertReqOutput(result.stdout)
+                val parsed = KeyToolParser.parseCertReqOutput(result.stdout)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse certificate request output: ${e.message}", -1)
@@ -515,11 +478,11 @@ object KeyToolAPI {
         val args = mutableListOf("-printcrl", "-file", file.absolutePath)
         if (verbose) args.add("-v")
 
-        val result = execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray())
 
         return if (result.exitCode == 0) {
             try {
-                val parsed = parseCrlOutput(result.stdout)
+                val parsed = KeyToolParser.parseCrlOutput(result.stdout)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse CRL output: ${e.message}", -1)
@@ -527,264 +490,5 @@ object KeyToolAPI {
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
-    }
-
-    // ===== PRIVATE PARSING HELPERS =====
-
-    private fun parseListVerboseOutput(output: String): KeystoreInfo {
-        val lines = output.lines()
-
-        // Parse header info
-        var type = "Unknown"
-        var provider = "Unknown"
-        var entryCount = 0
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed.startsWith("Keystore type:") -> {
-                    type = trimmed.substringAfter("Keystore type:").trim()
-                }
-                trimmed.startsWith("Keystore provider:") -> {
-                    provider = trimmed.substringAfter("Keystore provider:").trim()
-                }
-                trimmed.contains("keystore contains") && trimmed.contains("entr") -> {
-                    val match = Regex("(\\d+)\\s+entr").find(trimmed)
-                    entryCount = match?.groupValues?.get(1)?.toIntOrNull() ?: 0
-                }
-            }
-        }
-
-        // Split by "Alias name:" to get individual entries
-        val entryBlocks = output.split(Regex("(?=Alias name:)")).filter { it.contains("Alias name:") }
-        val entries = entryBlocks.map { parseKeystoreEntry(it) }
-
-        // Log warning if entry count mismatch
-        if (entries.size != entryCount && entryCount > 0) {
-            System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
-        }
-
-        // Validate keystore has critical information
-        if (type.isEmpty() || type == "Unknown") {
-            throw IllegalArgumentException("Could not determine keystore type from output")
-        }
-
-        // Log if any entries have missing critical fields
-        entries.forEach { entry ->
-            if (entry.alias.isBlank()) {
-                throw IllegalArgumentException("Parsed entry with blank alias")
-            }
-            if (entry.entryType == EntryType.UNKNOWN) {
-                throw IllegalArgumentException("Could not determine entry type for alias '${entry.alias}'")
-            }
-        }
-
-        return KeystoreInfo(type, provider, entryCount, entries)
-    }
-
-    private fun parseKeystoreEntry(block: String): KeystoreEntry {
-        val lines = block.lines()
-
-        var alias = ""
-        var creationDate = ""
-        var entryType = EntryType.UNKNOWN
-        var chainLength: Int? = null
-        var owner: String? = null
-        var issuer: String? = null
-        var keyAlgorithm: String? = null  // Subject Public Key Algorithm (RSA, EC, etc.)
-        var serialNumber: String? = null
-        var validFrom: String? = null
-        var validUntil: String? = null
-        var fingerprint: String? = null
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed.startsWith("Alias name:") -> {
-                    alias = trimmed.substringAfter("Alias name:").trim()
-                }
-                trimmed.startsWith("Creation date:") -> {
-                    creationDate = trimmed.substringAfter("Creation date:").trim()
-                }
-                trimmed.startsWith("Entry type:") -> {
-                    val typeStr = trimmed.substringAfter("Entry type:").trim()
-                    entryType = when {
-                        typeStr.contains("PrivateKey", ignoreCase = true) -> EntryType.PRIVATE_KEY
-                        typeStr.contains("trustedCert", ignoreCase = true) -> EntryType.TRUSTED_CERT
-                        typeStr.contains("SecretKey", ignoreCase = true) -> EntryType.SECRET_KEY
-                        else -> EntryType.UNKNOWN
-                    }
-                }
-                trimmed.startsWith("Certificate chain length:") -> {
-                    chainLength = trimmed.substringAfter("Certificate chain length:").trim().toIntOrNull()
-                }
-                trimmed.startsWith("Owner:") -> {
-                    owner = trimmed.substringAfter("Owner:").trim()
-                }
-                trimmed.startsWith("Issuer:") -> {
-                    issuer = trimmed.substringAfter("Issuer:").trim()
-                }
-                trimmed.startsWith("Serial number:") -> {
-                    serialNumber = trimmed.substringAfter("Serial number:").trim()
-                }
-                trimmed.startsWith("Valid from:") -> {
-                    // Format: "Valid from: Mon Jan 22 10:00:00 BRT 2026 until: Mon Jan 22 10:00:00 BRT 2027"
-                    val parts = trimmed.substringAfter("Valid from:").split("until:")
-                    validFrom = parts.getOrNull(0)?.trim()
-                    validUntil = parts.getOrNull(1)?.trim()
-                }
-                trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
-                    fingerprint = trimmed.substringAfter(":").trim()
-                }
-                // Extract the key algorithm from "Subject Public Key Algorithm: 2048-bit RSA key"
-                trimmed.startsWith("Subject Public Key Algorithm:") -> {
-                    val algStr = trimmed.substringAfter("Subject Public Key Algorithm:").trim()
-                    // Extract algorithm type (RSA, EC, DSA, etc.) from strings like "2048-bit RSA key" or "256-bit EC key"
-                    keyAlgorithm = when {
-                        algStr.contains("RSA", ignoreCase = true) -> "RSA"
-                        algStr.contains("EC", ignoreCase = true) -> "EC"
-                        algStr.contains("DSA", ignoreCase = true) -> "DSA"
-                        else -> algStr.substringBefore(" ").trim().ifBlank { null }
-                    }
-                }
-            }
-        }
-
-        return KeystoreEntry(
-            alias = alias,
-            creationDate = creationDate,
-            entryType = entryType,
-            certificateChainLength = chainLength,
-            owner = owner,
-            issuer = issuer,
-            algorithm = keyAlgorithm,
-            serialNumber = serialNumber,
-            validFrom = validFrom,
-            validUntil = validUntil,
-            fingerprint = fingerprint
-        )
-    }
-
-    private fun parseCertificateOutput(output: String): CertificateInfo {
-        val lines = output.lines()
-
-        var owner = ""
-        var issuer = ""
-        var serialNumber = ""
-        var validFrom = ""
-        var validUntil = ""
-        var algorithm = ""
-        val fingerprints = mutableMapOf<String, String>()
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed.startsWith("Owner:") -> {
-                    owner = trimmed.substringAfter("Owner:").trim()
-                }
-                trimmed.startsWith("Issuer:") -> {
-                    issuer = trimmed.substringAfter("Issuer:").trim()
-                }
-                trimmed.startsWith("Serial number:") -> {
-                    serialNumber = trimmed.substringAfter("Serial number:").trim()
-                }
-                trimmed.startsWith("Valid from:") -> {
-                    val parts = trimmed.substringAfter("Valid from:").split("until:")
-                    validFrom = parts.getOrNull(0)?.trim() ?: ""
-                    validUntil = parts.getOrNull(1)?.trim() ?: ""
-                }
-                trimmed.startsWith("Signature algorithm name:") -> {
-                    algorithm = trimmed.substringAfter("Signature algorithm name:").trim()
-                }
-                trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
-                    fingerprints["SHA-256"] = trimmed.substringAfter(":").trim()
-                }
-                trimmed.contains("SHA512:") || trimmed.contains("SHA-512:") -> {
-                    fingerprints["SHA-512"] = trimmed.substringAfter(":").trim()
-                }
-                trimmed.contains("SHA1:") || trimmed.contains("SHA-1:") -> {
-                    fingerprints["SHA-1"] = trimmed.substringAfter(":").trim()
-                }
-                trimmed.contains("MD5:") -> {
-                    fingerprints["MD5"] = trimmed.substringAfter(":").trim()
-                }
-            }
-        }
-
-        // Validate critical fields are present
-        if (owner.isEmpty() || issuer.isEmpty() || serialNumber.isEmpty()) {
-            throw IllegalArgumentException("Missing critical certificate fields: owner=$owner, issuer=$issuer, serialNumber=$serialNumber")
-        }
-
-        return CertificateInfo(owner, issuer, serialNumber, validFrom, validUntil, algorithm, fingerprints)
-    }
-
-    private fun parseCertReqOutput(output: String): CertRequestInfo {
-        val lines = output.lines()
-
-        var subject = ""
-        var algorithm = ""
-        val extensions = mutableListOf<String>()
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed.startsWith("Subject:") -> {
-                    subject = trimmed.substringAfter("Subject:").trim()
-                }
-                trimmed.startsWith("Signature algorithm:") || trimmed.startsWith("Signature Algorithm:") -> {
-                    algorithm = trimmed.substringAfter(":").trim()
-                }
-                trimmed.startsWith("Extension:") || trimmed.contains("OID:") -> {
-                    extensions.add(trimmed)
-                }
-            }
-        }
-
-        // Validate critical fields are present
-        if (subject.isEmpty() || algorithm.isEmpty()) {
-            throw IllegalArgumentException("Missing critical certificate request fields: subject=$subject, algorithm=$algorithm")
-        }
-
-        return CertRequestInfo(subject, algorithm, extensions)
-    }
-
-    private fun parseCrlOutput(output: String): CrlInfo {
-        val lines = output.lines()
-
-        var issuer = ""
-        var thisUpdate = ""
-        var nextUpdate: String? = null
-        val revokedCerts = mutableListOf<String>()
-
-        var inRevokedSection = false
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed.startsWith("Issuer:") -> {
-                    issuer = trimmed.substringAfter("Issuer:").trim()
-                }
-                trimmed.startsWith("This Update:") || trimmed.startsWith("ThisUpdate:") -> {
-                    thisUpdate = trimmed.substringAfter(":").trim()
-                }
-                trimmed.startsWith("Next Update:") || trimmed.startsWith("NextUpdate:") -> {
-                    nextUpdate = trimmed.substringAfter(":").trim()
-                }
-                trimmed.contains("Revoked Certificates:") -> {
-                    inRevokedSection = true
-                }
-                inRevokedSection && trimmed.startsWith("Serial Number:") -> {
-                    revokedCerts.add(trimmed.substringAfter("Serial Number:").trim())
-                }
-            }
-        }
-
-        // Validate critical fields are present
-        if (issuer.isEmpty() || thisUpdate.isEmpty()) {
-            throw IllegalArgumentException("Missing critical CRL fields: issuer=$issuer, thisUpdate=$thisUpdate")
-        }
-
-        return CrlInfo(issuer, thisUpdate, nextUpdate, revokedCerts)
     }
 }

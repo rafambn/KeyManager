@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.model
 
 data class KeyInfo(
     val alias: String,

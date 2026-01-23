@@ -1,6 +1,6 @@
 package unidesk.com.br.keymanager.ui.screens.keystore
 
-import unidesk.com.br.keymanager.core.KeyInfo
+import unidesk.com.br.keymanager.core.model.KeyInfo
 import java.io.File
 
 data class KeystoreState(

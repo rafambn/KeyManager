@@ -1,6 +1,10 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.core.repository
 
 import java.io.File
+import unidesk.com.br.keymanager.core.api.KeyToolAPI
+import unidesk.com.br.keymanager.core.model.KeyInfo
+import unidesk.com.br.keymanager.core.domain.EntryType
+import unidesk.com.br.keymanager.core.KeytoolResult
 
 class KeystoreRepository {
 

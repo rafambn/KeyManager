@@ -4,6 +4,10 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
+import unidesk.com.br.keymanager.core.api.KeyToolAPI
+import unidesk.com.br.keymanager.core.api.KeyToolExecutor
+import unidesk.com.br.keymanager.core.model.*
+import unidesk.com.br.keymanager.core.domain.*
 
 class KeyToolAPITest {
 
@@ -14,18 +18,18 @@ class KeyToolAPITest {
         private const val TEST_CERT_PATH = "/tmp/cert.pem"
     }
 
-    private val originalFactory = KeyToolAPI.processFactory
+    private val originalFactory = KeyToolExecutor.processFactory
 
     @BeforeTest
     fun setUp() {
         // Reset to original factory before each test
-        KeyToolAPI.processFactory = originalFactory
+        KeyToolExecutor.processFactory = originalFactory
     }
 
     @AfterTest
     fun tearDown() {
         // Restore original factory after each test
-        KeyToolAPI.processFactory = originalFactory
+        KeyToolExecutor.processFactory = originalFactory
     }
 
     // ===== Helper: Create Mock Process =====
@@ -55,7 +59,7 @@ class KeyToolAPITest {
     }
 
     private fun setupMockFactory(stdout: String, stderr: String = "", exitCode: Int = 0) {
-        KeyToolAPI.processFactory = { _: List<String> ->
+        KeyToolExecutor.processFactory = { _: List<String> ->
             createMockProcess(stdout, stderr, exitCode)
         }
     }
