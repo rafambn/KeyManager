@@ -4,10 +4,6 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import unidesk.com.br.keymanager.core.KeyAlgorithm
-import unidesk.com.br.keymanager.core.SignatureAlgorithm
-import unidesk.com.br.keymanager.core.ECCurve
-import unidesk.com.br.keymanager.core.KeystoreFormat
 
 object KeyToolAPI {
 

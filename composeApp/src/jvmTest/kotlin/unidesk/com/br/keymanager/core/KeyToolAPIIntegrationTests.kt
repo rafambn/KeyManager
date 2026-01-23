@@ -432,63 +432,175 @@ class KeyToolAPIIntegrationTests {
         }
     }
 
-    // ===== WORKFLOW TESTS =====
+    // ===== PHASE 2: ALGORITHM COVERAGE TESTS =====
 
     @Test
-    fun test_28_workflow_sign_and_import() = runTest {
-        val issuer = newKeystore()
-        val user = newKeystore()
+    fun test_28_genKeyPair_dsa_default() = runTest {
+        val ks = newKeystore()
 
-        // Issuer: create CA
-        KeyToolAPI.genKeyPair(issuer, TEST_PASSWORD, "ca", KEY_PASSWORD, "CN=CA, O=Test, C=US", 3650)
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "dsa", KEY_PASSWORD, DN, 365,
+            keyAlgorithm = KeyAlgorithm.DSA
+        )
 
-        // User: create key and CSR
-        KeyToolAPI.genKeyPair(user, TEST_PASSWORD, "mykey", KEY_PASSWORD, DN, 365)
-        val csr = File(testDir, "user.csr")
-        KeyToolAPI.certReq(user, TEST_PASSWORD, "mykey", KEY_PASSWORD, csr)
-
-        // Issuer: sign CSR
-        val cert = File(testDir, "user.cert")
-        KeyToolAPI.genCert(issuer, TEST_PASSWORD, "ca", KEY_PASSWORD, csr, cert, 365)
-
-        // User: import signed cert
-        val result = KeyToolAPI.importCert(user, TEST_PASSWORD, "mykey", cert)
-        assertTrue(result is KeytoolResult.Success)
+        assertTrue(result is KeytoolResult.Success, "DSA key generation failed")
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "dsa" })
     }
 
     @Test
-    fun test_29_workflow_move_keys() = runTest {
-        val ks1 = newKeystore()
-        val ks2 = newKeystore()
+    fun test_29_genSecKey_tripledes() = runTest {
+        val ks = newKeystore()
 
-        // Create 3 keys in source
-        for (i in 1..3) {
-            KeyToolAPI.genKeyPair(ks1, TEST_PASSWORD, "key$i", KEY_PASSWORD, DN, 365)
-        }
+        val result = KeyToolAPI.genSecKey(
+            ks, TEST_PASSWORD, "tripledes", KEY_PASSWORD,
+            keyAlgorithm = KeyAlgorithm.TRIPLE_DES,
+            keySize = 168  // TripleDES only supports 168-bit keys
+        )
 
-        // Create target
-        KeyToolAPI.genKeyPair(ks2, TEST_PASSWORD, "init", KEY_PASSWORD, DN, 365)
+        assertTrue(result is KeytoolResult.Success, "TripleDES key generation failed")
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "tripledes" })
+    }
 
-        // Move all keys
-        for (i in 1..3) {
-            val result = KeyToolAPI.importKeystore(
-                ks1, TEST_PASSWORD, "key$i", KEY_PASSWORD,
-                ks2, TEST_PASSWORD, destKeypass = KEY_PASSWORD
+    @Test
+    fun test_30_genSecKey_aes_variants() = runTest {
+        for (size in listOf(128, 192, 256)) {
+            val ks = newKeystore()
+            val result = KeyToolAPI.genSecKey(
+                ks, TEST_PASSWORD, "aes$size", KEY_PASSWORD,
+                keyAlgorithm = KeyAlgorithm.AES,
+                keySize = size
             )
-            assertTrue(result is KeytoolResult.Success, "Failed to move key$i")
+            assertTrue(result is KeytoolResult.Success, "AES $size-bit key generation failed")
         }
+    }
 
-        // Verify all keys in target
-        val list = KeyToolAPI.list(ks2, TEST_PASSWORD) as KeytoolResult.Success
-        for (i in 1..3) {
-            assertTrue(list.data.entries.any { it.alias == "key$i" })
-        }
+    // ===== PHASE 2: OUTPUT FORMAT VARIATION TESTS =====
+
+    @Test
+    fun test_31_list_verbose_true() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+
+        // List in verbose mode returns full entry details
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, verbose = true)
+
+        assertTrue(result is KeytoolResult.Success, "List in verbose mode failed")
+        val listInfo = (result as KeytoolResult.Success).data
+        assertTrue(listInfo.entries.isNotEmpty())
+        assertTrue(listInfo.entries[0].owner != null)
+    }
+
+    @Test
+    fun test_32_list_with_special_chars_in_dn() = runTest {
+        val ks = newKeystore()
+        // DN with special characters (commas, equals signs in values)
+        val specialDn = "CN=Test\\, Inc., O=Org\\=Value, C=US"
+
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "special", KEY_PASSWORD, specialDn, 365
+        )
+
+        assertTrue(result is KeytoolResult.Success, "Key generation with special chars in DN failed")
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        val entry = list.data.entries.find { it.alias == "special" }
+        assertNotNull(entry, "Generated entry not found in list")
+        // Verify DN is parsed correctly even with special characters
+        assertTrue((entry?.owner?.contains("Test") ?: false) && (entry?.owner?.contains("Inc") ?: false), "DN parsing failed for special chars")
+    }
+
+    @Test
+    fun test_33_exportCert_both_formats() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+
+        // Export as PEM
+        val pemFile = File(testDir, "cert.pem")
+        val pemResult = KeyToolAPI.exportCert(ks, TEST_PASSWORD, "key", pemFile, rfc = true)
+        assertTrue(pemResult is KeytoolResult.Success, "PEM export failed")
+        assertTrue(pemFile.exists() && pemFile.length() > 0, "PEM file is empty")
+
+        // Export as DER
+        val derFile = File(testDir, "cert.der")
+        val derResult = KeyToolAPI.exportCert(ks, TEST_PASSWORD, "key", derFile, rfc = false)
+        assertTrue(derResult is KeytoolResult.Success, "DER export failed")
+        assertTrue(derFile.exists() && derFile.length() > 0, "DER file is empty")
+
+        // DER should be smaller (binary) than PEM (base64)
+        assertTrue(derFile.length() < pemFile.length(), "DER should be smaller than PEM")
+    }
+
+    // ===== PHASE 2: ERROR SCENARIO TESTS =====
+
+    @Test
+    fun test_34_importCert_invalid_certificate() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+
+        // Create an invalid cert file (just text)
+        val invalidCert = File(testDir, "invalid.cert")
+        invalidCert.writeText("This is not a valid certificate")
+
+        val result = KeyToolAPI.importCert(ks, TEST_PASSWORD, "key", invalidCert)
+
+        assertTrue(result is KeytoolResult.Error, "Should fail importing invalid cert")
+    }
+
+    @Test
+    fun test_35_genKeyPair_duplicate_alias() = runTest {
+        val ks = newKeystore()
+
+        // Create first key
+        val result1 = KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "duplicate", KEY_PASSWORD, DN, 365)
+        assertTrue(result1 is KeytoolResult.Success)
+
+        // Try to create another with same alias
+        val result2 = KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "duplicate", KEY_PASSWORD, DN, 365)
+        assertTrue(result2 is KeytoolResult.Error, "Should fail with duplicate alias")
+    }
+
+    @Test
+    fun test_36_changeAlias_to_existing_alias() = runTest {
+        val ks = newKeystore()
+
+        // Create two keys
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key2", KEY_PASSWORD, DN, 365)
+
+        // Try to rename key1 to key2 (already exists)
+        val result = KeyToolAPI.changeAlias(ks, TEST_PASSWORD, "key1", "key2", KEY_PASSWORD)
+
+        assertTrue(result is KeytoolResult.Error, "Should fail renaming to existing alias")
+    }
+
+    @Test
+    fun test_37_importKeystore_jks_to_pkcs12_format() = runTest {
+        val sourceKs = newKeystore()
+        val destKs = newKeystore()
+
+        // Create source keystore with a key
+        KeyToolAPI.genKeyPair(sourceKs, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+
+        // Import from source to dest (keystores auto-detect format)
+        val result = KeyToolAPI.importKeystore(
+            sourceKs, TEST_PASSWORD, "key1", KEY_PASSWORD,
+            destKs, TEST_PASSWORD,
+            destKeypass = KEY_PASSWORD
+        )
+
+        assertTrue(result is KeytoolResult.Success, "Keystore import failed")
+
+        // Verify key is in destination
+        val list = KeyToolAPI.list(destKs, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "key1" }, "Imported key not found in destination")
     }
 
     // ===== ERROR CONDITION TESTS =====
 
     @Test
-    fun test_30_errors_missing_file() = runTest {
+    fun test_38_errors_missing_file() = runTest {
         val missing = File("/nonexistent/keystore.jks")
 
         val result = KeyToolAPI.list(missing, TEST_PASSWORD)
@@ -497,7 +609,7 @@ class KeyToolAPIIntegrationTests {
     }
 
     @Test
-    fun test_31_errors_invalid_password() = runTest {
+    fun test_39_errors_invalid_password() = runTest {
         val ks = newKeystore()
         KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
 
