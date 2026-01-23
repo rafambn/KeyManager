@@ -308,6 +308,52 @@ class KeyToolAPITest {
         assertTrue(result is KeytoolResult.Success)
     }
 
+    @Test
+    fun testGenKeyPairInvalidKeySizeTooSmall() = runTest {
+        setupMockFactory("", "keytool error: 512 < 1024: is disabled", 1)
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keySize = 512
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("disabled"))
+    }
+
+    @Test
+    fun testGenKeyPairInvalidKeySizeTooBig() = runTest {
+        setupMockFactory("", "keytool error: Invalid key size: 20000", 1)
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keySize = 20000
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("not valid for"))
+    }
+
+    @Test
+    fun testGenSecKeyAES128() = runTest {
+        setupMockFactory("", "", 0)
+        val result = KeyToolAPI.genSecKey(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            KeyAlgorithm.AES, 128
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+    }
+
+    @Test
+    fun testGenSecKeyAES192() = runTest {
+        setupMockFactory("", "", 0)
+        val result = KeyToolAPI.genSecKey(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            KeyAlgorithm.AES, 192
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+    }
+
     // ===== 3. GENSECKEY Function Tests =====
 
     @Test
@@ -631,6 +677,116 @@ class KeyToolAPITest {
         assertTrue(result is KeytoolResult.Error)
     }
 
+    @Test
+    fun testGenKeyPairErrorInvalidKeySizeForAlgorithm() = runTest {
+        setupMockFactory("", "keytool error: Invalid key size for EC: 129", 1)
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, keySize = 129
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("not valid for"))
+    }
+
+    @Test
+    fun testListErrorKeystoreCorrupted() = runTest {
+        setupMockFactory("", "keytool error: java.security.UnrecoverableKeyException: failed to decrypt safe contents entry", 1)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("decrypt") || result.message.contains("Unrecoverable"))
+    }
+
+    @Test
+    fun testImportCertErrorInvalidCertificateFormat() = runTest {
+        setupMockFactory("", "keytool error: java.lang.Exception: Input not an X.509 certificate", 1)
+        val result = KeyToolAPI.importCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, File("/tmp/invalid.crt")
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("not an X.509"))
+    }
+
+    @Test
+    fun testImportCertErrorChainEstablishmentFailed() = runTest {
+        setupMockFactory("", "keytool error: java.lang.Exception: Failed to establish chain from reply", 1)
+        val result = KeyToolAPI.importCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, File("/tmp/cert-no-chain.crt")
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Failed to establish chain"))
+    }
+
+    @Test
+    fun testImportCertErrorPublicKeyMismatch() = runTest {
+        setupMockFactory("", "keytool error: java.lang.Exception: Public keys in reply and keystore don't match", 1)
+        val result = KeyToolAPI.importCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, File("/tmp/wrong-key-cert.crt")
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Public keys") && result.message.contains("don't match"))
+    }
+
+    @Test
+    fun testGenKeyPairErrorWeakAlgorithmDisabled() = runTest {
+        setupMockFactory("", "keytool error: java.security.NoSuchAlgorithmException: MD5withRSA is disabled", 1)
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, signatureAlgorithm = SignatureAlgorithm.MD5_WITH_RSA
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("disabled"))
+    }
+
+    @Test
+    fun testGenKeyPairErrorConflictingOptions() = runTest {
+        setupMockFactory("", "keytool error: Cannot specify both -groupname and -keysize", 1)
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, keySize = 256, ecCurve = ECCurve.P256
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Cannot specify both"))
+    }
+
+    @Test
+    fun testListErrorUnrecognizedKeystoreFormat() = runTest {
+        setupMockFactory("", "keytool error: java.io.IOException: Unrecognized keystore format", 1)
+        val result = KeyToolAPI.list(File("/tmp/textfile.txt"), TEST_PASSWORD)
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Unrecognized"))
+    }
+
+    @Test
+    fun testImportKeystoreErrorFormatMismatch() = runTest {
+        setupMockFactory("", "keytool error: java.io.IOException: Keystore type mismatch", 1)
+        val result = KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, TEST_ALIAS, "keypass",
+            File("/tmp/dest.p12"), "destpass"
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("type") && result.message.contains("mismatch"))
+    }
+
+    @Test
+    fun testImportPassErrorAliasTypeMismatch() = runTest {
+        setupMockFactory("", "keytool error: java.lang.Exception: Alias <test> already exists", 1)
+        val result = KeyToolAPI.importPass(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "mypassword"
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("already exists"))
+    }
+
     // ===== 14. PRINTCERT Function Tests =====
 
     @Test
@@ -664,6 +820,102 @@ class KeyToolAPITest {
         assertTrue(result is KeytoolResult.Error)
         val error = result
         assertTrue(error.message.contains("Failed to parse"))
+    }
+
+    @Test
+    fun testPrintCertParsingWithSpecialCharsInDN() = runTest {
+        val specialDnOutput = """
+            Owner: CN=Test\, Inc., O=Org\=Value, C=US
+            Issuer: CN=CA\, Root, O=Authority, C=US
+            Serial number: abc123
+            Valid from: Mon Jan 22 10:00:00 BRT 2026 until: Tue Jan 22 10:00:00 BRT 2027
+            Certificate Signature Strength: 2048-bit
+            Signature algorithm name: SHA256withRSA
+            SHA-1: AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12
+            SHA-256: 12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD
+        """.trimIndent()
+
+        setupMockFactory(specialDnOutput, "", 0)
+        val result = KeyToolAPI.printCert(File(TEST_CERT_PATH))
+
+        assertTrue(result is KeytoolResult.Success)
+        val certInfo = result.data
+        assertTrue(certInfo.owner.contains("Test") && certInfo.owner.contains("Inc"))
+    }
+
+    @Test
+    fun testPrintCertParsingMultipleFingerprints() = runTest {
+        val multiHashOutput = """
+            Owner: CN=Test
+            Issuer: CN=Test
+            Serial number: 123
+            Valid from: Mon Jan 22 10:00:00 BRT 2026 until: Tue Jan 22 10:00:00 BRT 2027
+            Certificate Signature Strength: 2048-bit
+            Signature algorithm name: SHA256withRSA
+            SHA-1: AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12
+            SHA-256: 12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD
+            SHA-512: AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99
+            MD5: 12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD
+        """.trimIndent()
+
+        setupMockFactory(multiHashOutput, "", 0)
+        val result = KeyToolAPI.printCert(File(TEST_CERT_PATH))
+
+        assertTrue(result is KeytoolResult.Success)
+        val certInfo = result.data
+        assertTrue(certInfo.fingerprints.containsKey("SHA-1"))
+        assertTrue(certInfo.fingerprints.containsKey("SHA-256"))
+        assertTrue(certInfo.fingerprints.containsKey("SHA-512"))
+        assertTrue(certInfo.fingerprints.containsKey("MD5"))
+    }
+
+    @Test
+    fun testPrintCertReqParsingWithoutExtensions() = runTest {
+        val minimalCsrOutput = """
+            Subject: CN=Minimal CSR, O=Test Org, C=US
+            Signature algorithm: sha256WithRSAEncryption
+            Public Key Algorithm: rsaEncryption
+        """.trimIndent()
+
+        setupMockFactory(minimalCsrOutput, "", 0)
+        val result = KeyToolAPI.printCertReq(File("/tmp/req.csr"))
+
+        assertTrue(result is KeytoolResult.Success)
+        val csrInfo = result.data
+        assertEquals("CN=Minimal CSR, O=Test Org, C=US", csrInfo.subject)
+        assertTrue(csrInfo.extensions.isEmpty())
+    }
+
+    @Test
+    fun testListParsingWithUnicodeInDN() = runTest {
+        val unicodeOutput = """
+            Keystore type: PKCS12
+            Keystore provider: SUN
+
+            Your keystore contains 1 entries
+
+            Alias name: testkey
+            Creation date: Jan 22, 2026
+            Entry type: PrivateKeyEntry
+            Certificate chain length: 1
+            Certificate[1]:
+            Owner: CN=测试用户, O=组织, C=CN
+            Issuer: CN=测试用户, O=组织, C=CN
+            Serial number: 123abc
+            Valid from: Mon Jan 22 10:00:00 BRT 2026 until: Mon Jan 22 10:00:00 BRT 2027
+            Certificate Signature Strength: 2048-bit
+            Signature algorithm name: SHA256withRSA
+            Subject Public Key Algorithm: 2048-bit RSA key
+            Public Key SHA-256 Fingerprint: 12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD
+        """.trimIndent()
+
+        setupMockFactory(unicodeOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+        assertEquals(1, keystoreInfo.entries.size)
+        assertTrue(keystoreInfo.entries[0].owner?.contains("测试") ?: false)
     }
 
     // ===== 15. PRINTCERTREQ Function Tests =====

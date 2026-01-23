@@ -703,6 +703,9 @@ object KeyToolAPI {
                 trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
                     fingerprints["SHA-256"] = trimmed.substringAfter(":").trim()
                 }
+                trimmed.contains("SHA512:") || trimmed.contains("SHA-512:") -> {
+                    fingerprints["SHA-512"] = trimmed.substringAfter(":").trim()
+                }
                 trimmed.contains("SHA1:") || trimmed.contains("SHA-1:") -> {
                     fingerprints["SHA-1"] = trimmed.substringAfter(":").trim()
                 }
