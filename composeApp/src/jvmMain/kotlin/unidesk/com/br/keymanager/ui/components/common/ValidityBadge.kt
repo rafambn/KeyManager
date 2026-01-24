@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -99,7 +100,8 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
 
     return try {
         val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy")
-        val expiryDate = LocalDate.parse(validUntil, formatter)
+        val dateTime = ZonedDateTime.parse(validUntil, formatter)
+        val expiryDate = dateTime.toLocalDate()
         val today = LocalDate.now()
         val daysUntilExpiry = ChronoUnit.DAYS.between(today, expiryDate)
 
@@ -109,7 +111,7 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
             else -> ValidityStatus.VALID
         }
     } catch (e: Exception) {
-        // Try alternative date format
+        // Try alternative date format (ISO date only)
         try {
             val simpleFormatter = DateTimeFormatter.ISO_LOCAL_DATE
             val expiryDate = LocalDate.parse(validUntil.take(10), simpleFormatter)

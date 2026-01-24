@@ -62,18 +62,6 @@ class SettingsRepository {
 
         // Load selected language
         _selectedLanguage.value = settings.getString(KEY_SELECTED_LANGUAGE, "pt-BR")
-
-        // Set JVM locale properties
-        val languageCode = _selectedLanguage.value
-        val (lang, country) = if (languageCode.contains("-")) {
-            languageCode.split("-")
-        } else {
-            listOf(languageCode, "")
-        }
-        System.setProperty("user.language", lang)
-        if (country.isNotEmpty()) {
-            System.setProperty("user.country", country)
-        }
     }
 
     fun addRecentKeystore(path: String, name: String, keystoreType: String? = null) {
@@ -135,17 +123,6 @@ class SettingsRepository {
     fun setLanguage(languageCode: String) {
         _selectedLanguage.value = languageCode
         settings.putString(KEY_SELECTED_LANGUAGE, languageCode)
-
-        // Set JVM locale properties
-        val (lang, country) = if (languageCode.contains("-")) {
-            languageCode.split("-")
-        } else {
-            listOf(languageCode, "")
-        }
-        System.setProperty("user.language", lang)
-        if (country.isNotEmpty()) {
-            System.setProperty("user.country", country)
-        }
     }
 
     companion object {

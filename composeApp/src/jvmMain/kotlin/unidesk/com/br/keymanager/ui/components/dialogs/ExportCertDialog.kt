@@ -118,7 +118,16 @@ fun ExportCertDialog(
                             dialog.file = "$alias$extension"
                             dialog.isVisible = true
                             if (dialog.directory != null && dialog.file != null) {
-                                filePath = File(dialog.directory, dialog.file).absolutePath
+                                var selectedFile = dialog.file
+                                // Ensure correct extension
+                                if (!selectedFile.endsWith(extension)) {
+                                    selectedFile = if (selectedFile.contains(".")) {
+                                        selectedFile.substringBeforeLast(".") + extension
+                                    } else {
+                                        selectedFile + extension
+                                    }
+                                }
+                                filePath = File(dialog.directory, selectedFile).absolutePath
                             }
                         }
                     ) {

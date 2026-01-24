@@ -52,7 +52,8 @@ fun MainScreen(
                 is AppEvent.ShowError -> {
                     snackbarHostState.showSnackbar(
                         message = event.message,
-                        duration = SnackbarDuration.Long
+                        duration = SnackbarDuration.Long,
+                        withDismissAction = true
                     )
                 }
                 else -> {}
