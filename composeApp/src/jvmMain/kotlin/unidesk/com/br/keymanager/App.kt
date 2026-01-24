@@ -2,13 +2,18 @@ package unidesk.com.br.keymanager
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import unidesk.com.br.keymanager.ui.screens.navigation.NavigationRoot
 import unidesk.com.br.keymanager.ui.theme.AppTheme
+import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
 
 @Composable
 @Preview
 fun App() {
-    AppTheme {
+    val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
+    val isDarkMode by appViewModel.isDarkMode.collectAsState()
+
+    AppTheme(useDarkTheme = isDarkMode) {
         NavigationRoot()
     }
 }

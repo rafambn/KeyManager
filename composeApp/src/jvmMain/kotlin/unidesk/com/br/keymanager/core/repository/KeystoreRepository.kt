@@ -3,52 +3,41 @@ package unidesk.com.br.keymanager.core.repository
 import java.io.File
 import unidesk.com.br.keymanager.core.api.KeyToolAPI
 import unidesk.com.br.keymanager.core.model.KeyInfo
+import unidesk.com.br.keymanager.core.model.KeystoreInfo
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.KeytoolResult
 
+/**
+ * Stateless repository for keystore operations.
+ * All operations take file and password as parameters.
+ */
 class KeystoreRepository {
 
-    private var currentFile: File? = null
-    private var currentStorePassword: String? = null
-
-    // In-memory cache of aliases with their key passwords (if known)
-    private val keyPasswordCache = mutableMapOf<String, String>()
-
-    suspend fun loadKeystore(file: File, password: String) {
-        // Use KeyToolAPI.list() to validate the keystore and password
-        when (val result = KeyToolAPI.list(file, password)) {
-            is KeytoolResult.Success -> {
-                currentFile = file
-                currentStorePassword = password
-                keyPasswordCache.clear()
-            }
-            is KeytoolResult.Error -> {
-                throw IllegalArgumentException("Failed to load keystore: ${result.message}")
-            }
-        }
+    suspend fun validateKeystore(file: File, password: String): KeytoolResult<KeystoreInfo> {
+        return KeyToolAPI.list(file, password)
     }
 
-    suspend fun getKeys(): List<KeyInfo> {
-        val file = currentFile ?: return emptyList()
-        val password = currentStorePassword ?: return emptyList()
+    suspend fun getKeystoreInfo(file: File, password: String): KeytoolResult<KeystoreInfo> {
+        return KeyToolAPI.list(file, password, verbose = true)
+    }
 
+    suspend fun getKeys(file: File, password: String): List<KeyInfo> {
         return when (val result = KeyToolAPI.list(file, password, verbose = true)) {
             is KeytoolResult.Success -> {
                 result.data.entries.sortedBy { it.alias }.map { entry ->
-                    val type = when (entry.entryType) {
-                        EntryType.PRIVATE_KEY -> "type_key"
-                        EntryType.TRUSTED_CERT -> "type_certificate"
-                        EntryType.SECRET_KEY -> "type_secret"
-                        EntryType.UNKNOWN -> "type_unknown"
-                    }
-
-                    val algorithm = entry.algorithm ?: "Unknown"
-
                     KeyInfo(
                         alias = entry.alias,
-                        algorithm = algorithm,
-                        type = type,
-                        details = entry.owner ?: ""
+                        algorithm = entry.algorithm ?: "Unknown",
+                        entryType = entry.entryType,
+                        details = entry.owner ?: "",
+                        creationDate = entry.creationDate,
+                        validFrom = entry.validFrom,
+                        validUntil = entry.validUntil,
+                        fingerprint = entry.fingerprint,
+                        owner = entry.owner,
+                        issuer = entry.issuer,
+                        certificateChainLength = entry.certificateChainLength,
+                        serialNumber = entry.serialNumber
                     )
                 }
             }
@@ -59,10 +48,7 @@ class KeystoreRepository {
         }
     }
 
-    suspend fun getAliases(): List<String> {
-        val file = currentFile ?: return emptyList()
-        val password = currentStorePassword ?: return emptyList()
-
+    suspend fun getAliases(file: File, password: String): List<String> {
         return when (val result = KeyToolAPI.list(file, password, verbose = false)) {
             is KeytoolResult.Success -> result.data.entries.map { it.alias }.sorted()
             is KeytoolResult.Error -> {
@@ -72,29 +58,20 @@ class KeystoreRepository {
         }
     }
 
-    suspend fun deleteAlias(alias: String) {
-        val file = currentFile ?: return
-        val password = currentStorePassword ?: return
-
-        when (val result = KeyToolAPI.delete(file, password, alias)) {
-            is KeytoolResult.Success -> {
-                keyPasswordCache.remove(alias)
-            }
-            is KeytoolResult.Error -> {
-                throw IllegalStateException("Failed to delete alias: ${result.message}")
-            }
-        }
+    suspend fun deleteAlias(file: File, password: String, alias: String): KeytoolResult<Unit> {
+        return KeyToolAPI.delete(file, password, alias)
     }
 
-    suspend fun moveAlias(alias: String, targetFile: File, targetPassword: String) {
-        val sourceFile = currentFile ?: throw IllegalStateException("Source keystore not loaded")
-        val sourcePassword = currentStorePassword ?: throw IllegalStateException("Source password not set")
-
-        // Get key password from cache, fall back to store password
-        val keyPassword = keyPasswordCache[alias] ?: sourcePassword
-
+    suspend fun moveAlias(
+        sourceFile: File,
+        sourcePassword: String,
+        alias: String,
+        keyPassword: String,
+        targetFile: File,
+        targetPassword: String
+    ): KeytoolResult<Unit> {
         // Import the alias to the target keystore
-        when (val importResult = KeyToolAPI.importKeystore(
+        return when (val importResult = KeyToolAPI.importKeystore(
             srcKeystore = sourceFile,
             srcStorepass = sourcePassword,
             srcAlias = alias,
@@ -105,88 +82,89 @@ class KeystoreRepository {
         )) {
             is KeytoolResult.Success -> {
                 // Successfully imported, now delete from source
-                when (val deleteResult = KeyToolAPI.delete(sourceFile, sourcePassword, alias)) {
-                    is KeytoolResult.Success -> {
-                        keyPasswordCache.remove(alias)
-                    }
-                    is KeytoolResult.Error -> {
-                        throw IllegalStateException("Alias copied but failed to delete from source: ${deleteResult.message}")
-                    }
-                }
+                KeyToolAPI.delete(sourceFile, sourcePassword, alias)
             }
             is KeytoolResult.Error -> {
-                throw IllegalStateException("Failed to move alias: ${importResult.message}")
+                importResult
             }
         }
     }
 
-    suspend fun renameAlias(oldAlias: String, newAlias: String, keyPassword: String? = null) {
-        val file = currentFile ?: return
-        val password = currentStorePassword ?: return
-
-        // Store key password if provided
-        if (keyPassword != null) {
-            keyPasswordCache[oldAlias] = keyPassword
-        }
-
-        // Use cached key password or store password
-        val effectiveKeyPassword = keyPasswordCache[oldAlias] ?: password
-
-        when (val result = KeyToolAPI.changeAlias(
+    suspend fun renameAlias(
+        file: File,
+        storePassword: String,
+        oldAlias: String,
+        newAlias: String,
+        keyPassword: String
+    ): KeytoolResult<Unit> {
+        return KeyToolAPI.changeAlias(
             keystore = file,
-            storepass = password,
+            storepass = storePassword,
             alias = oldAlias,
             destalias = newAlias,
-            keypass = effectiveKeyPassword
-        )) {
-            is KeytoolResult.Success -> {
-                // Update cache: move password from old alias to new alias
-                keyPasswordCache[oldAlias]?.let { cachedPassword ->
-                    keyPasswordCache.remove(oldAlias)
-                    keyPasswordCache[newAlias] = cachedPassword
-                }
-            }
-            is KeytoolResult.Error -> {
-                throw IllegalStateException("Failed to rename alias: ${result.message}")
-            }
-        }
+            keypass = keyPassword
+        )
     }
 
-    suspend fun addCertificate(alias: String, dn: String, validityDays: Int, keyPassword: String? = null) {
-        val file = currentFile ?: return
-        val password = currentStorePassword ?: return
-
-        // Use provided key password or default to store password
-        val effectiveKeyPassword = keyPassword ?: password
-
-        when (val result = KeyToolAPI.genKeyPair(
+    suspend fun createKeyPair(
+        file: File,
+        storePassword: String,
+        alias: String,
+        dn: String,
+        validityDays: Int,
+        keyPassword: String
+    ): KeytoolResult<Unit> {
+        return KeyToolAPI.genKeyPair(
             keystore = file,
-            storepass = password,
+            storepass = storePassword,
             alias = alias,
-            keypass = effectiveKeyPassword,
+            keypass = keyPassword,
             dname = dn,
             validity = validityDays
-        )) {
-            is KeytoolResult.Success -> {
-                // Cache the key password if different from store password
-                if (keyPassword != null && keyPassword != password) {
-                    keyPasswordCache[alias] = keyPassword
-                }
-            }
-            is KeytoolResult.Error -> {
-                throw IllegalStateException("Failed to add certificate: ${result.message}")
-            }
-        }
+        )
     }
 
-    // Store key password for an alias (user provided it for an operation)
-    fun setKeyPassword(alias: String, keyPassword: String) {
-        keyPasswordCache[alias] = keyPassword
+    suspend fun exportCertificate(
+        file: File,
+        storePassword: String,
+        alias: String,
+        outputFile: File,
+        rfc: Boolean = true
+    ): KeytoolResult<Unit> {
+        return KeyToolAPI.exportCert(
+            keystore = file,
+            storepass = storePassword,
+            alias = alias,
+            file = outputFile,
+            rfc = rfc
+        )
     }
 
-    fun getKeyPassword(alias: String): String? = keyPasswordCache[alias]
+    suspend fun changeStorePassword(
+        file: File,
+        oldPassword: String,
+        newPassword: String
+    ): KeytoolResult<Unit> {
+        return KeyToolAPI.storePasswd(
+            keystore = file,
+            storepass = oldPassword,
+            newStorepass = newPassword
+        )
+    }
 
-    fun isLoaded(): Boolean = currentFile != null
-
-    fun getCurrentPassword(): CharArray? = currentStorePassword?.toCharArray()
+    suspend fun changeKeyPassword(
+        file: File,
+        storePassword: String,
+        alias: String,
+        oldKeyPassword: String,
+        newKeyPassword: String
+    ): KeytoolResult<Unit> {
+        return KeyToolAPI.keyPasswd(
+            keystore = file,
+            storepass = storePassword,
+            alias = alias,
+            keypass = oldKeyPassword,
+            newKeypass = newKeyPassword
+        )
+    }
 }

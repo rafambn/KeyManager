@@ -8,4 +8,7 @@ sealed interface DialogResult {
     data class Delete(val alias: String) : DialogResult
     data class Move(val alias: String, val targetFile: File, val targetPassword: String) : DialogResult
     data class BulkMove(val aliases: List<String>, val targetFile: File, val targetPassword: String) : DialogResult
+    data class CreateKeystore(val file: File, val password: String, val format: String) : DialogResult
+    data class ChangePassword(val sessionId: String, val oldPassword: String, val newPassword: String) : DialogResult
+    data class ExportCert(val alias: String, val file: File, val asPem: Boolean) : DialogResult
 }

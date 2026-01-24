@@ -12,7 +12,13 @@ sealed interface Route : NavKey {
     data class Password(val title: String, val filePath: String) : Route
 
     @Serializable
-    data object CreateKey : Route
+    data class UnlockKeystore(val sessionId: String) : Route
+
+    @Serializable
+    data object CreateKeystore : Route
+
+    @Serializable
+    data class CreateKey(val sessionId: String) : Route
 
     @Serializable
     data class Rename(val alias: String) : Route
@@ -34,4 +40,19 @@ sealed interface Route : NavKey {
 
     @Serializable
     data class BulkMoveConfirmation(val aliases: List<String>, val filePath: String, val password: String) : Route
+
+    @Serializable
+    data class ChangeKeystorePassword(val sessionId: String) : Route
+
+    @Serializable
+    data class KeyDetails(val alias: String) : Route
+
+    @Serializable
+    data class ExportCert(val alias: String) : Route
+
+    @Serializable
+    data object InspectCrl : Route
+
+    @Serializable
+    data object Settings : Route
 }
