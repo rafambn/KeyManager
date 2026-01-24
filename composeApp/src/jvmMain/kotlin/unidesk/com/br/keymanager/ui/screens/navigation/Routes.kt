@@ -51,8 +51,5 @@ sealed interface Route : NavKey {
     data class ExportCert(val alias: String) : Route
 
     @Serializable
-    data object InspectCrl : Route
-
-    @Serializable
     data object Settings : Route
 }

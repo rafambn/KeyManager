@@ -46,7 +46,6 @@ fun NavigationRoot(
                     subclass(Route.ChangeKeystorePassword::class, Route.ChangeKeystorePassword.serializer())
                     subclass(Route.KeyDetails::class, Route.KeyDetails.serializer())
                     subclass(Route.ExportCert::class, Route.ExportCert.serializer())
-                    subclass(Route.InspectCrl::class, Route.InspectCrl.serializer())
                     subclass(Route.Settings::class, Route.Settings.serializer())
                 }
             }
@@ -77,7 +76,6 @@ fun NavigationRoot(
                             backStack.add(Route.BulkMoveSelect(aliases))
                         }
                     },
-                    onInspectCrl = { backStack.add(Route.InspectCrl) },
                     onSettings = { backStack.add(Route.Settings) },
                     onUnlockKeystore = { sessionId -> backStack.add(Route.UnlockKeystore(sessionId)) },
                     onCreateKey = { sessionId -> backStack.add(Route.CreateKey(sessionId)) },
@@ -120,7 +118,7 @@ fun NavigationRoot(
             ) {
                 CreateKeystoreScreen(
                     onCreateKeystore = { file, password, format ->
-                        resultStore.setResult("create_keystore_result", DialogResult.CreateKeystore(file, password, format))
+                        appViewModel.createKeystore(file, password, format)
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -280,17 +278,9 @@ fun NavigationRoot(
                 ExportCertScreen(
                     alias = key.alias,
                     onExport = { file, asPem ->
-                        resultStore.setResult("export_cert_result", DialogResult.ExportCert(key.alias, file, asPem))
+                        appViewModel.exportCertificate(key.alias, file, asPem)
                         backStack.pop()
                     },
-                    onNavigateBack = { backStack.pop() }
-                )
-            }
-
-            entry<Route.InspectCrl>(
-                metadata = DialogSceneStrategy.dialog()
-            ) {
-                InspectCrlScreen(
                     onNavigateBack = { backStack.pop() }
                 )
             }

@@ -1,8 +1,15 @@
 package unidesk.com.br.keymanager.ui.screens
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.model.KeyInfo
@@ -11,6 +18,7 @@ import unidesk.com.br.keymanager.ui.panes.KeysPane
 import unidesk.com.br.keymanager.ui.panes.KeystoresPane
 import unidesk.com.br.keymanager.ui.panes.NavigationPane
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
+import unidesk.com.br.keymanager.ui.viewmodel.AppEvent
 import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
 import java.awt.FileDialog
 import java.awt.Frame
@@ -22,7 +30,6 @@ fun MainScreen(
     onCreateKeystore: () -> Unit,
     onOpenKeystore: (File) -> Unit,
     onBulkMove: () -> Unit,
-    onInspectCrl: () -> Unit,
     onSettings: () -> Unit,
     onUnlockKeystore: (String) -> Unit,
     onCreateKey: (String) -> Unit,
@@ -36,6 +43,22 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect events and show snackbar
+    LaunchedEffect(viewModel) {
+        viewModel.eventChannel.collect { event ->
+            when (event) {
+                is AppEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                else -> {}
+            }
+        }
+    }
 
     // Compute filtered keys directly from state to ensure synchronization
     val allKeys = state.selectedSession?.keystoreInfo?.entries?.map { entry ->
@@ -70,63 +93,66 @@ fun MainScreen(
             }
         }
 
-    ThreePaneLayout(
+    Scaffold(
         modifier = modifier,
-        leftPane = {
-            NavigationPane(
-                onCreateKeystore = onCreateKeystore,
-                onOpenKeystore = {
-                    val file = selectFile("Select Keystore")
-                    if (file != null) {
-                        onOpenKeystore(file)
-                    }
-                },
-                onBulkMove = onBulkMove,
-                onInspectCrl = onInspectCrl,
-                onSettings = onSettings
-            )
-        },
-        middlePane = {
-            KeystoresPane(
-                recentKeystores = state.recentKeystores,
-                openKeystores = state.sortedKeystores,
-                selectedKeystoreId = state.selectedKeystoreId,
-                searchQuery = state.keystoreSearchQuery,
-                sortOrder = state.keystoreSortOrder,
-                onSearchQueryChange = viewModel::setKeystoreSearchQuery,
-                onSortOrderChange = viewModel::setKeystoreSortOrder,
-                onOpenRecent = viewModel::openRecentKeystore,
-                onRemoveRecent = viewModel::removeFromRecent,
-                onSelectKeystore = viewModel::selectKeystore,
-                onUnlockKeystore = onUnlockKeystore,
-                onLockKeystore = viewModel::lockKeystore,
-                onCloseKeystore = viewModel::closeKeystore,
-                onCreateKey = onCreateKey,
-                onChangePassword = onChangeKeystorePassword
-            )
-        },
-        rightPane = {
-            KeysPane(
-                selectedSession = state.selectedSession,
-                keys = filteredKeys,
-                selectedKeyAlias = state.selectedKeyAlias,
-                searchQuery = state.keySearchQuery,
-                typeFilter = state.keyTypeFilter,
-                onSearchQueryChange = viewModel::setKeySearchQuery,
-                onTypeFilterChange = viewModel::setKeyTypeFilter,
-                onRefresh = {
-                    state.selectedKeystoreId?.let { viewModel.refreshKeystore(it) }
-                },
-                onSelectKey = viewModel::selectKey,
-                onViewDetails = onViewKeyDetails,
-                onExport = onExportKey,
-                onCopyFingerprint = onCopyFingerprint,
-                onRename = onRenameKey,
-                onMove = onMoveKey,
-                onDelete = onDeleteKey
-            )
-        }
-    )
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) {
+        ThreePaneLayout(
+            leftPane = {
+                NavigationPane(
+                    onCreateKeystore = onCreateKeystore,
+                    onOpenKeystore = {
+                        val file = selectFile("Select Keystore")
+                        if (file != null) {
+                            onOpenKeystore(file)
+                        }
+                    },
+                    onBulkMove = onBulkMove,
+                    onSettings = onSettings
+                )
+            },
+            middlePane = {
+                KeystoresPane(
+                    recentKeystores = state.recentKeystores,
+                    openKeystores = state.sortedKeystores,
+                    selectedKeystoreId = state.selectedKeystoreId,
+                    searchQuery = state.keystoreSearchQuery,
+                    sortOrder = state.keystoreSortOrder,
+                    onSearchQueryChange = viewModel::setKeystoreSearchQuery,
+                    onSortOrderChange = viewModel::setKeystoreSortOrder,
+                    onOpenRecent = viewModel::openRecentKeystore,
+                    onRemoveRecent = viewModel::removeFromRecent,
+                    onSelectKeystore = viewModel::selectKeystore,
+                    onUnlockKeystore = onUnlockKeystore,
+                    onLockKeystore = viewModel::lockKeystore,
+                    onCloseKeystore = viewModel::closeKeystore,
+                    onCreateKey = onCreateKey,
+                    onChangePassword = onChangeKeystorePassword
+                )
+            },
+            rightPane = {
+                KeysPane(
+                    selectedSession = state.selectedSession,
+                    keys = filteredKeys,
+                    selectedKeyAlias = state.selectedKeyAlias,
+                    searchQuery = state.keySearchQuery,
+                    typeFilter = state.keyTypeFilter,
+                    onSearchQueryChange = viewModel::setKeySearchQuery,
+                    onTypeFilterChange = viewModel::setKeyTypeFilter,
+                    onRefresh = {
+                        state.selectedKeystoreId?.let { viewModel.refreshKeystore(it) }
+                    },
+                    onSelectKey = viewModel::selectKey,
+                    onViewDetails = onViewKeyDetails,
+                    onExport = onExportKey,
+                    onCopyFingerprint = onCopyFingerprint,
+                    onRename = onRenameKey,
+                    onMove = onMoveKey,
+                    onDelete = onDeleteKey
+                )
+            }
+        )
+    }
 }
 
 fun selectFile(title: String, mode: Int = FileDialog.LOAD): File? {

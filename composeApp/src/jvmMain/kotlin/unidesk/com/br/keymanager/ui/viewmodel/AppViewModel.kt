@@ -53,6 +53,7 @@ class AppViewModel(
     val isDarkMode: StateFlow<Boolean> = settingsRepository.isDarkMode
     val defaultKeystoreFormat: StateFlow<String> = settingsRepository.defaultKeystoreFormat
     val autoLockTimeoutMinutes: StateFlow<Int> = settingsRepository.autoLockTimeoutMinutes
+    val selectedLanguage: StateFlow<String> = settingsRepository.selectedLanguage
 
     private val _eventChannel = Channel<AppEvent>(Channel.BUFFERED)
     val eventChannel = _eventChannel.receiveAsFlow()
@@ -179,6 +180,35 @@ class AppViewModel(
         }
 
         _eventChannel.trySend(AppEvent.KeystoreClosed(sessionId))
+    }
+
+    fun createKeystore(file: File, password: String, format: String) {
+        viewModelScope.launch {
+            // Create keystore by adding a temporary key
+            val tempAlias = "__temp_init_key__"
+            val result = KeyToolAPI.genKeyPair(
+                keystore = file,
+                storepass = password,
+                alias = tempAlias,
+                keypass = password,
+                dname = "CN=Temporary",
+                validity = 1
+            )
+
+            when (result) {
+                is KeytoolResult.Success -> {
+                    // Delete the temporary key
+                    KeyToolAPI.delete(file, password, tempAlias)
+                    // Open the keystore
+                    openKeystore(file)
+                    settingsRepository.addRecentKeystore(file.absolutePath, file.name)
+                    _eventChannel.trySend(AppEvent.ShowError("Keystore created successfully"))
+                }
+                is KeytoolResult.Error -> {
+                    _eventChannel.trySend(AppEvent.ShowError("Failed to create keystore: ${result.message}"))
+                }
+            }
+        }
     }
 
     fun selectKeystore(sessionId: String?) {
@@ -625,6 +655,11 @@ class AppViewModel(
 
     fun setAutoLockTimeout(minutes: Int) {
         settingsRepository.setAutoLockTimeout(minutes)
+    }
+
+    fun setLanguage(languageCode: String) {
+        settingsRepository.setLanguage(languageCode)
+        _eventChannel.trySend(AppEvent.ShowError("Language changed. Please restart the app."))
     }
 
     // Error handling

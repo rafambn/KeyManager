@@ -19,3 +19,7 @@ captures
 node_modules/
 # Keystore files with sensitive cryptographic material
 keys/*.jks
+
+# Claude Code documentation
+.claude/docs/
+CLAUDE.md

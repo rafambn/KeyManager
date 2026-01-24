@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Settings
@@ -32,7 +31,6 @@ fun NavigationPane(
     onCreateKeystore: () -> Unit,
     onOpenKeystore: () -> Unit,
     onBulkMove: () -> Unit,
-    onInspectCrl: () -> Unit,
     onSettings: () -> Unit,
     appVersion: String = "1.0.0",
     modifier: Modifier = Modifier
@@ -113,20 +111,7 @@ fun NavigationPane(
             HorizontalDivider()
             Spacer(Modifier.height(16.dp))
 
-            // Secondary Actions
-            TextButton(
-                onClick = onInspectCrl,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.size(8.dp))
-                Text("Inspect CRL")
-            }
-
+            // Settings
             TextButton(
                 onClick = onSettings,
                 modifier = Modifier.fillMaxWidth()

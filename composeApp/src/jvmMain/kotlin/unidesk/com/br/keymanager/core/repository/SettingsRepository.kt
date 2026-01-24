@@ -33,6 +33,9 @@ class SettingsRepository {
     private val _autoLockTimeoutMinutes = MutableStateFlow(0)
     val autoLockTimeoutMinutes: StateFlow<Int> = _autoLockTimeoutMinutes.asStateFlow()
 
+    private val _selectedLanguage = MutableStateFlow("pt-BR")
+    val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
+
     init {
         loadSettings()
     }
@@ -56,6 +59,21 @@ class SettingsRepository {
 
         // Load auto-lock timeout
         _autoLockTimeoutMinutes.value = settings.getInt(KEY_AUTO_LOCK_TIMEOUT, 0)
+
+        // Load selected language
+        _selectedLanguage.value = settings.getString(KEY_SELECTED_LANGUAGE, "pt-BR")
+
+        // Set JVM locale properties
+        val languageCode = _selectedLanguage.value
+        val (lang, country) = if (languageCode.contains("-")) {
+            languageCode.split("-")
+        } else {
+            listOf(languageCode, "")
+        }
+        System.setProperty("user.language", lang)
+        if (country.isNotEmpty()) {
+            System.setProperty("user.country", country)
+        }
     }
 
     fun addRecentKeystore(path: String, name: String, keystoreType: String? = null) {
@@ -114,11 +132,28 @@ class SettingsRepository {
         settings.putInt(KEY_AUTO_LOCK_TIMEOUT, minutes)
     }
 
+    fun setLanguage(languageCode: String) {
+        _selectedLanguage.value = languageCode
+        settings.putString(KEY_SELECTED_LANGUAGE, languageCode)
+
+        // Set JVM locale properties
+        val (lang, country) = if (languageCode.contains("-")) {
+            languageCode.split("-")
+        } else {
+            listOf(languageCode, "")
+        }
+        System.setProperty("user.language", lang)
+        if (country.isNotEmpty()) {
+            System.setProperty("user.country", country)
+        }
+    }
+
     companion object {
         private const val KEY_RECENT_KEYSTORES = "recent_keystores"
         private const val KEY_DARK_MODE = "dark_mode"
         private const val KEY_DEFAULT_FORMAT = "default_keystore_format"
         private const val KEY_AUTO_LOCK_TIMEOUT = "auto_lock_timeout"
+        private const val KEY_SELECTED_LANGUAGE = "selected_language"
         private const val MAX_RECENT_KEYSTORES = 10
     }
 }

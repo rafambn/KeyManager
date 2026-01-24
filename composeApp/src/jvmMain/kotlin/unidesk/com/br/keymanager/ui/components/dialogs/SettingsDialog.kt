@@ -6,8 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,9 +46,11 @@ fun SettingsDialog(
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val defaultFormat by viewModel.defaultKeystoreFormat.collectAsState()
     val autoLockTimeout by viewModel.autoLockTimeoutMinutes.collectAsState()
+    val selectedLanguage by viewModel.selectedLanguage.collectAsState()
 
     var formatExpanded by remember { mutableStateOf(false) }
     var timeoutExpanded by remember { mutableStateOf(false) }
+    var languageExpanded by remember { mutableStateOf(false) }
 
     val formats = listOf("PKCS12", "JKS")
     val timeoutOptions = listOf(
@@ -55,14 +61,19 @@ fun SettingsDialog(
         30 to "30 minutes",
         60 to "1 hour"
     )
+    val languages = mapOf("en" to "English", "pt-BR" to "Português (Brasil)")
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            modifier = Modifier.width(400.dp),
+            modifier = Modifier
+                .widthIn(min = 400.dp, max = 600.dp)
+                .heightIn(max = 700.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Text(
                     text = "Settings",
@@ -180,6 +191,52 @@ fun SettingsDialog(
                                 onClick = {
                                     viewModel.setAutoLockTimeout(minutes)
                                     timeoutExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(16.dp))
+
+                // Language Selection
+                Text(
+                    text = "Language",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Select UI language",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = languageExpanded,
+                    onExpandedChange = { languageExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = languages[selectedLanguage] ?: "English",
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = languageExpanded,
+                        onDismissRequest = { languageExpanded = false }
+                    ) {
+                        languages.forEach { (code, label) ->
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    viewModel.setLanguage(code)
+                                    languageExpanded = false
                                 }
                             )
                         }
