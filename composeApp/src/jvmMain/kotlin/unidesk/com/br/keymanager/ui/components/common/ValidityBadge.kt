@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import unidesk.com.br.keymanager.ui.localization.rememberLocalizedString
 
 enum class ValidityStatus {
     VALID,
@@ -39,30 +40,35 @@ fun ValidityBadge(
 ) {
     val status = calculateValidityStatus(validUntil)
 
+    val validLabel = rememberLocalizedString("validity_valid")
+    val expiringLabel = rememberLocalizedString("validity_expiring")
+    val expiredLabel = rememberLocalizedString("validity_expired")
+    val unknownLabel = rememberLocalizedString("validity_unknown")
+
     val (backgroundColor, contentColor, icon, label) = when (status) {
         ValidityStatus.VALID -> Quadruple(
             Color(0xFF4CAF50).copy(alpha = 0.15f),
             Color(0xFF2E7D32),
             Icons.Default.Check,
-            "Valid"
+            validLabel
         )
         ValidityStatus.EXPIRING_SOON -> Quadruple(
             Color(0xFFFF9800).copy(alpha = 0.15f),
             Color(0xFFE65100),
             Icons.Default.Warning,
-            "Expiring"
+            expiringLabel
         )
         ValidityStatus.EXPIRED -> Quadruple(
             Color(0xFFF44336).copy(alpha = 0.15f),
             Color(0xFFC62828),
             Icons.Default.Close,
-            "Expired"
+            expiredLabel
         )
         ValidityStatus.UNKNOWN -> Quadruple(
             MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.onSurfaceVariant,
             null,
-            "Unknown"
+            unknownLabel
         )
     }
 
@@ -99,9 +105,8 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
     if (validUntil.isNullOrBlank()) return ValidityStatus.UNKNOWN
 
     return try {
-        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy")
-        val dateTime = ZonedDateTime.parse(validUntil, formatter)
-        val expiryDate = dateTime.toLocalDate()
+        // Try multiple date formats to handle different locales
+        val expiryDate = parseDateFlexible(validUntil)
         val today = LocalDate.now()
         val daysUntilExpiry = ChronoUnit.DAYS.between(today, expiryDate)
 
@@ -111,22 +116,70 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
             else -> ValidityStatus.VALID
         }
     } catch (e: Exception) {
-        // Try alternative date format (ISO date only)
-        try {
-            val simpleFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-            val expiryDate = LocalDate.parse(validUntil.take(10), simpleFormatter)
-            val today = LocalDate.now()
-            val daysUntilExpiry = ChronoUnit.DAYS.between(today, expiryDate)
-
-            when {
-                daysUntilExpiry < 0 -> ValidityStatus.EXPIRED
-                daysUntilExpiry <= 30 -> ValidityStatus.EXPIRING_SOON
-                else -> ValidityStatus.VALID
-            }
-        } catch (e2: Exception) {
-            ValidityStatus.UNKNOWN
-        }
+        ValidityStatus.UNKNOWN
     }
+}
+
+private fun parseDateFlexible(dateString: String): LocalDate {
+    val trimmed = dateString.trim()
+
+    // Try parsing with English locale first
+    try {
+        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale.ENGLISH)
+        val dateTime = ZonedDateTime.parse(trimmed, formatter)
+        return dateTime.toLocalDate()
+    } catch (e: Exception) {
+        // Continue to next format
+    }
+
+    // Try parsing with Portuguese locale
+    try {
+        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale("pt", "BR"))
+        val dateTime = ZonedDateTime.parse(trimmed, formatter)
+        return dateTime.toLocalDate()
+    } catch (e: Exception) {
+        // Continue to next format
+    }
+
+    // Try ISO format (last 4 digits for year, then back to extract the full date)
+    try {
+        val parts = trimmed.split(" ")
+        if (parts.size >= 3) {
+            val month = when (parts[1].lowercase()) {
+                "jan" -> "01"
+                "fev", "feb" -> "02"
+                "mar" -> "03"
+                "abr", "apr" -> "04"
+                "mai", "may" -> "05"
+                "jun" -> "06"
+                "jul" -> "07"
+                "ago", "aug" -> "08"
+                "set", "sep" -> "09"
+                "out", "oct" -> "10"
+                "nov" -> "11"
+                "dez", "dec" -> "12"
+                else -> throw IllegalArgumentException("Unknown month: ${parts[1]}")
+            }
+            val day = parts[2].padStart(2, '0')
+            val year = parts.last()
+            val isoDate = "$year-$month-$day"
+            return LocalDate.parse(isoDate)
+        }
+    } catch (e: Exception) {
+        // Continue to next format
+    }
+
+    // Final fallback: try to extract just the date portion
+    try {
+        val isoMatch = Regex("""(\d{4})-(\d{2})-(\d{2})""").find(trimmed)
+        if (isoMatch != null) {
+            return LocalDate.parse(isoMatch.value)
+        }
+    } catch (e: Exception) {
+        // Fall through to throw
+    }
+
+    throw IllegalArgumentException("Could not parse date: $dateString")
 }
 
 private data class Quadruple<A, B, C, D>(

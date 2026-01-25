@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
@@ -32,11 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.core.model.KeystoreSession
 import unidesk.com.br.keymanager.ui.components.cards.KeyCard
 import unidesk.com.br.keymanager.ui.components.common.EmptyState
-import unidesk.com.br.keymanager.ui.components.common.EmptyStateDefaults
 import unidesk.com.br.keymanager.ui.components.common.SearchBar
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
 
@@ -68,15 +71,15 @@ fun KeysPane(
     ) {
         if (selectedSession == null) {
             EmptyState(
-                icon = EmptyStateDefaults.NoSelection.icon,
-                title = EmptyStateDefaults.NoSelection.title,
-                description = EmptyStateDefaults.NoSelection.description
+                icon = Icons.Default.Folder,
+                title = stringResource(Res.string.empty_no_selection),
+                description = stringResource(Res.string.empty_no_selection_desc)
             )
         } else if (!selectedSession.isUnlocked) {
             EmptyState(
                 icon = Icons.Default.Lock,
-                title = "Keystore Locked",
-                description = "Unlock the keystore to view its contents"
+                title = stringResource(Res.string.empty_keystore_locked),
+                description = stringResource(Res.string.empty_keystore_locked_desc)
             )
         } else {
             // Header
@@ -103,7 +106,7 @@ fun KeysPane(
                     IconButton(onClick = onRefresh) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
+                            contentDescription = stringResource(Res.string.action_refresh),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -120,14 +123,14 @@ fun KeysPane(
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = onSearchQueryChange,
-                    placeholder = "Search keys...",
+                    placeholder = stringResource(Res.string.search_keys),
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(Modifier.width(8.dp))
                 IconButton(onClick = { showFilterMenu = true }) {
                     Icon(
                         imageVector = Icons.Default.FilterList,
-                        contentDescription = "Filter",
+                        contentDescription = stringResource(Res.string.action_filter),
                         tint = if (typeFilter != KeyTypeFilter.ALL) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -140,7 +143,7 @@ fun KeysPane(
                     onDismissRequest = { showFilterMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("All") },
+                        text = { Text(stringResource(Res.string.filter_all)) },
                         onClick = {
                             onTypeFilterChange(KeyTypeFilter.ALL)
                             showFilterMenu = false
@@ -148,7 +151,7 @@ fun KeysPane(
                         enabled = typeFilter != KeyTypeFilter.ALL
                     )
                     DropdownMenuItem(
-                        text = { Text("Private Keys") },
+                        text = { Text(stringResource(Res.string.filter_private_keys)) },
                         onClick = {
                             onTypeFilterChange(KeyTypeFilter.PRIVATE_KEY)
                             showFilterMenu = false
@@ -156,7 +159,7 @@ fun KeysPane(
                         enabled = typeFilter != KeyTypeFilter.PRIVATE_KEY
                     )
                     DropdownMenuItem(
-                        text = { Text("Trusted Certs") },
+                        text = { Text(stringResource(Res.string.filter_trusted_certs)) },
                         onClick = {
                             onTypeFilterChange(KeyTypeFilter.TRUSTED_CERT)
                             showFilterMenu = false
@@ -164,7 +167,7 @@ fun KeysPane(
                         enabled = typeFilter != KeyTypeFilter.TRUSTED_CERT
                     )
                     DropdownMenuItem(
-                        text = { Text("Secret Keys") },
+                        text = { Text(stringResource(Res.string.filter_secret_keys)) },
                         onClick = {
                             onTypeFilterChange(KeyTypeFilter.SECRET_KEY)
                             showFilterMenu = false
@@ -180,11 +183,11 @@ fun KeysPane(
             if (keys.isEmpty()) {
                 EmptyState(
                     icon = Icons.Default.Key,
-                    title = "No keys found",
+                    title = stringResource(Res.string.empty_no_results),
                     description = if (searchQuery.isNotEmpty() || typeFilter != KeyTypeFilter.ALL) {
-                        "Try adjusting your search or filter"
+                        stringResource(Res.string.empty_no_results_desc)
                     } else {
-                        "Create a new key or import certificates"
+                        stringResource(Res.string.empty_no_keys_desc)
                     }
                 )
             } else {

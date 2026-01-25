@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,14 +56,14 @@ fun SettingsDialog(
 
     val formats = listOf("PKCS12", "JKS")
     val timeoutOptions = listOf(
-        0 to "Never",
-        5 to "5 minutes",
-        10 to "10 minutes",
-        15 to "15 minutes",
-        30 to "30 minutes",
-        60 to "1 hour"
+        0 to stringResource(Res.string.timeout_never),
+        5 to stringResource(Res.string.timeout_5min),
+        10 to stringResource(Res.string.timeout_10min),
+        15 to stringResource(Res.string.timeout_15min),
+        30 to stringResource(Res.string.timeout_30min),
+        60 to stringResource(Res.string.timeout_1hour)
     )
-    val languages = mapOf("en" to "English", "pt-BR" to "Português (Brasil)")
+    val languages = mapOf("en" to stringResource(Res.string.lang_english), "pt-BR" to stringResource(Res.string.lang_portuguese))
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -76,7 +78,7 @@ fun SettingsDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "Settings",
+                    text = stringResource(Res.string.settings_title),
                     style = MaterialTheme.typography.headlineSmall
                 )
 
@@ -90,11 +92,11 @@ fun SettingsDialog(
                 ) {
                     Column {
                         Text(
-                            text = "Dark Mode",
+                            text = stringResource(Res.string.settings_dark_mode),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "Use dark color scheme",
+                            text = stringResource(Res.string.settings_dark_mode_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -111,12 +113,12 @@ fun SettingsDialog(
 
                 // Default Keystore Format
                 Text(
-                    text = "Default Keystore Format",
+                    text = stringResource(Res.string.settings_keystore_format),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Used when creating new keystores",
+                    text = stringResource(Res.string.settings_keystore_format_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -157,12 +159,12 @@ fun SettingsDialog(
 
                 // Auto-lock Timeout
                 Text(
-                    text = "Auto-lock Timeout",
+                    text = stringResource(Res.string.settings_auto_lock),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Lock keystores after inactivity",
+                    text = stringResource(Res.string.settings_auto_lock_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -203,12 +205,12 @@ fun SettingsDialog(
 
                 // Language Selection
                 Text(
-                    text = "Language",
+                    text = stringResource(Res.string.settings_language),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Select UI language",
+                    text = stringResource(Res.string.settings_language_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -250,7 +252,7 @@ fun SettingsDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Button(onClick = onDismiss) {
-                        Text("Close")
+                        Text(stringResource(Res.string.settings_close))
                     }
                 }
             }

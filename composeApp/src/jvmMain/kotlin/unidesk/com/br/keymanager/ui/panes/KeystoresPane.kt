@@ -30,12 +30,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.*
 import unidesk.com.br.keymanager.core.model.KeystoreSession
 import unidesk.com.br.keymanager.core.model.RecentKeystore
 import unidesk.com.br.keymanager.ui.components.cards.KeystoreCard
 import unidesk.com.br.keymanager.ui.components.cards.RecentKeystoreCard
 import unidesk.com.br.keymanager.ui.components.common.EmptyState
-import unidesk.com.br.keymanager.ui.components.common.EmptyStateDefaults
 import unidesk.com.br.keymanager.ui.components.common.SearchBar
 import unidesk.com.br.keymanager.ui.state.KeystoreSortOrder
 
@@ -77,14 +79,14 @@ fun KeystoresPane(
             SearchBar(
                 query = searchQuery,
                 onQueryChange = onSearchQueryChange,
-                placeholder = "Search keystores...",
+                placeholder = stringResource(Res.string.search_keystores),
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = { showSortMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.Sort,
-                    contentDescription = "Sort",
+                    contentDescription = stringResource(Res.string.action_sort),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -93,7 +95,7 @@ fun KeystoresPane(
                 onDismissRequest = { showSortMenu = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text("Recent") },
+                    text = { Text(stringResource(Res.string.sort_recent)) },
                     onClick = {
                         onSortOrderChange(KeystoreSortOrder.RECENT)
                         showSortMenu = false
@@ -101,7 +103,7 @@ fun KeystoresPane(
                     enabled = sortOrder != KeystoreSortOrder.RECENT
                 )
                 DropdownMenuItem(
-                    text = { Text("Name") },
+                    text = { Text(stringResource(Res.string.sort_name)) },
                     onClick = {
                         onSortOrderChange(KeystoreSortOrder.NAME)
                         showSortMenu = false
@@ -109,7 +111,7 @@ fun KeystoresPane(
                     enabled = sortOrder != KeystoreSortOrder.NAME
                 )
                 DropdownMenuItem(
-                    text = { Text("Path") },
+                    text = { Text(stringResource(Res.string.sort_path)) },
                     onClick = {
                         onSortOrderChange(KeystoreSortOrder.PATH)
                         showSortMenu = false
@@ -123,9 +125,9 @@ fun KeystoresPane(
 
         if (openKeystores.isEmpty() && filteredRecents.isEmpty()) {
             EmptyState(
-                icon = EmptyStateDefaults.NoKeystores.icon,
-                title = EmptyStateDefaults.NoKeystores.title,
-                description = EmptyStateDefaults.NoKeystores.description
+                icon = Icons.Default.Folder,
+                title = stringResource(Res.string.empty_no_keystores),
+                description = stringResource(Res.string.empty_no_keystores_desc)
             )
         } else {
             LazyColumn(
@@ -136,7 +138,7 @@ fun KeystoresPane(
                 // Recent Keystores Section
                 if (filteredRecents.isNotEmpty()) {
                     item {
-                        SectionHeader(title = "Recent")
+                        SectionHeader(title = stringResource(Res.string.table_header_recent))
                     }
                     items(
                         items = filteredRecents,
@@ -156,7 +158,7 @@ fun KeystoresPane(
                         if (filteredRecents.isNotEmpty()) {
                             Spacer(Modifier.height(8.dp))
                         }
-                        SectionHeader(title = "Open")
+                        SectionHeader(title = stringResource(Res.string.table_header_open))
                     }
                     items(
                         items = openKeystores,

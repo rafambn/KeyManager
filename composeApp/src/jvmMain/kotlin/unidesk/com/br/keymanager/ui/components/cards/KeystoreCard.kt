@@ -28,6 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.action_change_password
+import keymanager.composeapp.generated.resources.action_close_keystore
+import keymanager.composeapp.generated.resources.action_create_key
+import keymanager.composeapp.generated.resources.action_lock_keystore
+import keymanager.composeapp.generated.resources.action_unlock
+import keymanager.composeapp.generated.resources.entries_count
 import unidesk.com.br.keymanager.core.model.KeystoreSession
 import unidesk.com.br.keymanager.ui.components.common.LockIndicator
 
@@ -88,7 +96,7 @@ fun KeystoreCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close keystore",
+                        contentDescription = stringResource(Res.string.action_close_keystore),
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -123,7 +131,7 @@ fun KeystoreCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "${session.keystoreInfo.entryCount} entries",
+                        text = "${session.keystoreInfo.entryCount} ${stringResource(Res.string.entries_count)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -140,7 +148,7 @@ fun KeystoreCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Create key",
+                            contentDescription = stringResource(Res.string.action_create_key),
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -151,7 +159,7 @@ fun KeystoreCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Password,
-                            contentDescription = "Change password",
+                            contentDescription = stringResource(Res.string.action_change_password),
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -162,7 +170,7 @@ fun KeystoreCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Lock keystore",
+                            contentDescription = stringResource(Res.string.action_lock_keystore),
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -187,7 +195,7 @@ fun KeystoreCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "Unlock",
+                        text = stringResource(Res.string.action_unlock),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

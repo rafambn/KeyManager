@@ -52,4 +52,95 @@
     <string name="move_bulk_dialog_title">Move Selected Keys</string>
     <string name="move_bulk_confirmation_format">Are you sure you want to move %1$d keys to '%2$s'?</string>
     <string name="refresh_action">Refresh</string>
+
+    <!-- Navigation -->
+    <string name="app_title">KeyManager</string>
+    <string name="nav_create_keystore">Create Keystore</string>
+    <string name="nav_open_keystore">Open Keystore</string>
+    <string name="nav_bulk_move">Bulk Key Move</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Settings Dialog -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="settings_dark_mode_desc">Use dark color scheme</string>
+    <string name="settings_keystore_format">Default Keystore Format</string>
+    <string name="settings_keystore_format_desc">Used when creating new keystores</string>
+    <string name="settings_auto_lock">Auto-lock Timeout</string>
+    <string name="settings_auto_lock_desc">Lock keystores after inactivity</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_desc">Select UI language</string>
+    <string name="settings_close">Close</string>
+
+    <!-- Timeout Options -->
+    <string name="timeout_never">Never</string>
+    <string name="timeout_5min">5 minutes</string>
+    <string name="timeout_10min">10 minutes</string>
+    <string name="timeout_15min">15 minutes</string>
+    <string name="timeout_30min">30 minutes</string>
+    <string name="timeout_1hour">1 hour</string>
+
+    <!-- Languages -->
+    <string name="lang_english">English</string>
+    <string name="lang_portuguese">Português (Brasil)</string>
+
+    <!-- Search and Filters -->
+    <string name="search_keys">Search keys...</string>
+    <string name="search_keystores">Search keystores...</string>
+    <string name="filter_all">All</string>
+    <string name="filter_private_keys">Private Keys</string>
+    <string name="filter_trusted_certs">Trusted Certs</string>
+    <string name="filter_secret_keys">Secret Keys</string>
+
+    <!-- Sort Options -->
+    <string name="sort_recent">Recent</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_path">Path</string>
+
+    <!-- Empty States -->
+    <string name="empty_no_keystores">No keystores open</string>
+    <string name="empty_no_keystores_desc">Open or create a keystore to get started</string>
+    <string name="empty_no_keys">No keys in keystore</string>
+    <string name="empty_no_keys_desc">Create a new key or import certificates</string>
+    <string name="empty_keystore_locked">Keystore locked</string>
+    <string name="empty_keystore_locked_desc">Enter the password to unlock</string>
+    <string name="empty_no_selection">No keystore selected</string>
+    <string name="empty_no_selection_desc">Select a keystore from the list to view its contents</string>
+    <string name="empty_no_results">No keys found</string>
+    <string name="empty_no_results_desc">Try adjusting your search or filter</string>
+
+    <!-- Validity Badge -->
+    <string name="validity_valid">Valid</string>
+    <string name="validity_expiring">Expiring</string>
+    <string name="validity_expired">Expired</string>
+    <string name="validity_unknown">Unknown</string>
+
+    <!-- Keystore Actions -->
+    <string name="action_unlock">Unlock</string>
+    <string name="action_close_keystore">Close keystore</string>
+    <string name="action_create_key">Create key</string>
+    <string name="action_change_password">Change password</string>
+    <string name="action_lock_keystore">Lock keystore</string>
+    <string name="action_view_details">View details</string>
+    <string name="action_export_cert">Export certificate</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_move">Move</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_sort">Sort</string>
+
+    <!-- Entry Types -->
+    <string name="entry_type_private_key">Private Key</string>
+    <string name="entry_type_trusted_cert">Trusted Cert</string>
+    <string name="entry_type_secret_key">Secret Key</string>
+    <string name="entry_type_unknown">Unknown</string>
+
+    <!-- Entry Details -->
+    <string name="entries_count">entries</string>
+    <string name="valid_until">Valid until: %1$s</string>
+
+    <!-- Table headers   -->
+    <string name="table_header_recent">Recent</string>
+    <string name="table_header_open">Open</string>
 </resources>

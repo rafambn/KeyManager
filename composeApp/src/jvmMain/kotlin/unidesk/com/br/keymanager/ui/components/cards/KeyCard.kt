@@ -32,6 +32,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.action_delete
+import keymanager.composeapp.generated.resources.action_export_cert
+import keymanager.composeapp.generated.resources.action_move
+import keymanager.composeapp.generated.resources.action_rename
+import keymanager.composeapp.generated.resources.action_view_details
+import keymanager.composeapp.generated.resources.entry_type_private_key
+import keymanager.composeapp.generated.resources.entry_type_secret_key
+import keymanager.composeapp.generated.resources.entry_type_trusted_cert
+import keymanager.composeapp.generated.resources.entry_type_unknown
+import keymanager.composeapp.generated.resources.valid_until
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.ui.components.common.ValidityBadge
@@ -57,10 +69,11 @@ fun KeyCard(
     }
 
     val typeLabel = when (keyInfo.entryType) {
-        EntryType.PRIVATE_KEY -> "Private Key"
-        EntryType.TRUSTED_CERT -> "Trusted Cert"
-        EntryType.SECRET_KEY -> "Secret Key"
-        EntryType.UNKNOWN -> "Unknown"
+        EntryType.PRIVATE_KEY -> stringResource(Res.string.entry_type_private_key)
+        EntryType.TRUSTED_CERT -> stringResource(Res.string.entry_type_trusted_cert)
+        EntryType.SECRET_KEY -> stringResource(Res.string.entry_type_secret_key)
+        EntryType.UNKNOWN -> { stringResource(Res.string.entry_type_unknown)
+        }
     }
 
     Card(
@@ -150,7 +163,7 @@ fun KeyCard(
 
                 if (keyInfo.validUntil != null) {
                     Text(
-                        text = "Valid until: ${keyInfo.validUntil}",
+                        text = stringResource(Res.string.valid_until, keyInfo.validUntil),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -169,7 +182,7 @@ fun KeyCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Info,
-                        contentDescription = "View details",
+                        contentDescription = stringResource(Res.string.action_view_details),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -180,7 +193,7 @@ fun KeyCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.SaveAlt,
-                        contentDescription = "Export certificate",
+                        contentDescription = stringResource(Res.string.action_export_cert),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -191,7 +204,7 @@ fun KeyCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Rename",
+                        contentDescription = stringResource(Res.string.action_rename),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -202,7 +215,7 @@ fun KeyCard(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Move",
+                        contentDescription = stringResource(Res.string.action_move),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -214,7 +227,7 @@ fun KeyCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(Res.string.action_delete),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.error
                     )

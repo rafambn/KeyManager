@@ -52,4 +52,95 @@
     <string name="move_bulk_dialog_title">Mover Chaves Selecionadas</string>
     <string name="move_bulk_confirmation_format">Tem certeza que deseja mover %1$d chaves para '%2$s'?</string>
     <string name="refresh_action">Atualizar</string>
+
+    <!-- Navigation -->
+    <string name="app_title">KeyManager</string>
+    <string name="nav_create_keystore">Criar Keystore</string>
+    <string name="nav_open_keystore">Abrir Keystore</string>
+    <string name="nav_bulk_move">Mover Chaves em Lote</string>
+    <string name="nav_settings">Configurações</string>
+
+    <!-- Settings Dialog -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_dark_mode">Modo Escuro</string>
+    <string name="settings_dark_mode_desc">Usar esquema de cores escuro</string>
+    <string name="settings_keystore_format">Formato de Keystore Padrão</string>
+    <string name="settings_keystore_format_desc">Usado ao criar novas keystores</string>
+    <string name="settings_auto_lock">Tempo de Bloqueio Automático</string>
+    <string name="settings_auto_lock_desc">Bloquear keystores após inatividade</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_desc">Selecionar idioma da interface</string>
+    <string name="settings_close">Fechar</string>
+
+    <!-- Timeout Options -->
+    <string name="timeout_never">Nunca</string>
+    <string name="timeout_5min">5 minutos</string>
+    <string name="timeout_10min">10 minutos</string>
+    <string name="timeout_15min">15 minutos</string>
+    <string name="timeout_30min">30 minutos</string>
+    <string name="timeout_1hour">1 hora</string>
+
+    <!-- Languages -->
+    <string name="lang_english">English</string>
+    <string name="lang_portuguese">Português (Brasil)</string>
+
+    <!-- Search and Filters -->
+    <string name="search_keys">Pesquisar chaves...</string>
+    <string name="search_keystores">Pesquisar keystores...</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_private_keys">Chaves Privadas</string>
+    <string name="filter_trusted_certs">Certificados Confiáveis</string>
+    <string name="filter_secret_keys">Chaves Secretas</string>
+
+    <!-- Sort Options -->
+    <string name="sort_recent">Recente</string>
+    <string name="sort_name">Nome</string>
+    <string name="sort_path">Caminho</string>
+
+    <!-- Empty States -->
+    <string name="empty_no_keystores">Nenhuma keystore aberta</string>
+    <string name="empty_no_keystores_desc">Abra ou crie uma keystore para começar</string>
+    <string name="empty_no_keys">Nenhuma chave na keystore</string>
+    <string name="empty_no_keys_desc">Crie uma nova chave ou importe certificados</string>
+    <string name="empty_keystore_locked">Keystore bloqueada</string>
+    <string name="empty_keystore_locked_desc">Digite a senha para desbloquear</string>
+    <string name="empty_no_selection">Nenhuma keystore selecionada</string>
+    <string name="empty_no_selection_desc">Selecione uma keystore da lista para ver seu conteúdo</string>
+    <string name="empty_no_results">Nenhuma chave encontrada</string>
+    <string name="empty_no_results_desc">Tente ajustar sua pesquisa ou filtro</string>
+
+    <!-- Validity Badge -->
+    <string name="validity_valid">Válido</string>
+    <string name="validity_expiring">Expirando</string>
+    <string name="validity_expired">Expirado</string>
+    <string name="validity_unknown">Desconhecido</string>
+
+    <!-- Keystore Actions -->
+    <string name="action_unlock">Desbloquear</string>
+    <string name="action_close_keystore">Fechar keystore</string>
+    <string name="action_create_key">Criar chave</string>
+    <string name="action_change_password">Alterar senha</string>
+    <string name="action_lock_keystore">Bloquear keystore</string>
+    <string name="action_view_details">Ver detalhes</string>
+    <string name="action_export_cert">Exportar certificado</string>
+    <string name="action_rename">Renomear</string>
+    <string name="action_move">Mover</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_refresh">Atualizar</string>
+    <string name="action_filter">Filtro</string>
+    <string name="action_sort">Ordenar</string>
+
+    <!-- Entry Types -->
+    <string name="entry_type_private_key">Chave Privada</string>
+    <string name="entry_type_trusted_cert">Certificado Confiável</string>
+    <string name="entry_type_secret_key">Chave Secreta</string>
+    <string name="entry_type_unknown">Desconhecido</string>
+
+    <!-- Entry Details -->
+    <string name="entries_count">entradas</string>
+    <string name="valid_until">Válido até: %1$s</string>
+
+    <!-- Table headers   -->
+    <string name="table_header_recent">Recente</string>
+    <string name="table_header_open">Aberto</string>
 </resources>

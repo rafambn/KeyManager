@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import unidesk.com.br.keymanager.ui.localization.rememberLocalizedString
 
 @Composable
 fun NavigationPane(
@@ -35,6 +36,12 @@ fun NavigationPane(
     appVersion: String = "1.0.0",
     modifier: Modifier = Modifier
 ) {
+    val appTitle = rememberLocalizedString("app_title")
+    val createKeystoreLabel = rememberLocalizedString("nav_create_keystore")
+    val openKeystoreLabel = rememberLocalizedString("nav_open_keystore")
+    val bulkMoveLabel = rememberLocalizedString("nav_bulk_move")
+    val settingsLabel = rememberLocalizedString("nav_settings")
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -55,7 +62,7 @@ fun NavigationPane(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "KeyManager",
+                    text = appTitle,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -74,7 +81,7 @@ fun NavigationPane(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(8.dp))
-                Text("Create Keystore")
+                Text(createKeystoreLabel)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -89,7 +96,7 @@ fun NavigationPane(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(8.dp))
-                Text("Open Keystore")
+                Text(openKeystoreLabel)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -104,7 +111,7 @@ fun NavigationPane(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(8.dp))
-                Text("Bulk Key Move")
+                Text(bulkMoveLabel)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -122,7 +129,7 @@ fun NavigationPane(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(8.dp))
-                Text("Settings")
+                Text(settingsLabel)
             }
         }
 
