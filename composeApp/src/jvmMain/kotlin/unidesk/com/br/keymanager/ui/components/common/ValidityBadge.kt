@@ -24,7 +24,12 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import unidesk.com.br.keymanager.ui.localization.rememberLocalizedString
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.validity_valid
+import keymanager.composeapp.generated.resources.validity_expiring
+import keymanager.composeapp.generated.resources.validity_expired
+import keymanager.composeapp.generated.resources.validity_unknown
 
 enum class ValidityStatus {
     VALID,
@@ -40,10 +45,10 @@ fun ValidityBadge(
 ) {
     val status = calculateValidityStatus(validUntil)
 
-    val validLabel = rememberLocalizedString("validity_valid")
-    val expiringLabel = rememberLocalizedString("validity_expiring")
-    val expiredLabel = rememberLocalizedString("validity_expired")
-    val unknownLabel = rememberLocalizedString("validity_unknown")
+    val validLabel = stringResource(Res.string.validity_valid)
+    val expiringLabel = stringResource(Res.string.validity_expiring)
+    val expiredLabel = stringResource(Res.string.validity_expired)
+    val unknownLabel = stringResource(Res.string.validity_unknown)
 
     val (backgroundColor, contentColor, icon, label) = when (status) {
         ValidityStatus.VALID -> Quadruple(

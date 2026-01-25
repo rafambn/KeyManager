@@ -25,7 +25,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import unidesk.com.br.keymanager.ui.localization.rememberLocalizedString
+import org.jetbrains.compose.resources.stringResource
+import keymanager.composeapp.generated.resources.Res
+import keymanager.composeapp.generated.resources.app_title
+import keymanager.composeapp.generated.resources.nav_create_keystore
+import keymanager.composeapp.generated.resources.nav_open_keystore
+import keymanager.composeapp.generated.resources.nav_bulk_move
+import keymanager.composeapp.generated.resources.nav_settings
 
 @Composable
 fun NavigationPane(
@@ -36,11 +42,11 @@ fun NavigationPane(
     appVersion: String = "1.0.0",
     modifier: Modifier = Modifier
 ) {
-    val appTitle = rememberLocalizedString("app_title")
-    val createKeystoreLabel = rememberLocalizedString("nav_create_keystore")
-    val openKeystoreLabel = rememberLocalizedString("nav_open_keystore")
-    val bulkMoveLabel = rememberLocalizedString("nav_bulk_move")
-    val settingsLabel = rememberLocalizedString("nav_settings")
+    val appTitle = stringResource(Res.string.app_title)
+    val createKeystoreLabel = stringResource(Res.string.nav_create_keystore)
+    val openKeystoreLabel = stringResource(Res.string.nav_open_keystore)
+    val bulkMoveLabel = stringResource(Res.string.nav_bulk_move)
+    val settingsLabel = stringResource(Res.string.nav_settings)
 
     Column(
         modifier = modifier

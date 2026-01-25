@@ -123,6 +123,27 @@ class SettingsRepository {
     fun setLanguage(languageCode: String) {
         _selectedLanguage.value = languageCode
         settings.putString(KEY_SELECTED_LANGUAGE, languageCode)
+
+        // Update JVM system locale at runtime
+        val (lang, country) = if (languageCode.contains("-")) {
+            val parts = languageCode.split("-")
+            parts[0] to parts[1]
+        } else {
+            languageCode to ""
+        }
+
+        System.setProperty("user.language", lang)
+        if (country.isNotEmpty()) {
+            System.setProperty("user.country", country)
+        }
+
+        // Update default JVM locale
+        val locale = if (country.isNotEmpty()) {
+            java.util.Locale(lang, country)
+        } else {
+            java.util.Locale(lang)
+        }
+        java.util.Locale.setDefault(locale)
     }
 
     companion object {

@@ -659,7 +659,6 @@ class AppViewModel(
 
     fun setLanguage(languageCode: String) {
         settingsRepository.setLanguage(languageCode)
-        _eventChannel.trySend(AppEvent.ShowError("Language changed successfully."))
     }
 
     // Error handling
