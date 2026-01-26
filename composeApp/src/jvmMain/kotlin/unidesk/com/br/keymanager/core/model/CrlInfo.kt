@@ -1,6 +1,4 @@
 package unidesk.com.br.keymanager.core.model
-
-// CRL info (for printCrl)
 data class CrlInfo(
     val issuer: String,
     val thisUpdate: String,

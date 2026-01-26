@@ -1,8 +1,5 @@
 package unidesk.com.br.keymanager.core.model
-
 import unidesk.com.br.keymanager.core.domain.EntryType
-
-// Single keystore entry
 data class KeystoreEntry(
     val alias: String,
     val creationDate: String,

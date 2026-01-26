@@ -22,12 +22,11 @@ enum class KeyAlgorithm(
         displayName = "RSA",
         cliName = "rsa",
         supportedKeySizes = 512..16384,
-        defaultKeySize = 3072,  // JDK 25+ default
+        defaultKeySize = 3072,  
         supportsSignature = true,
         supportsKeyAgreement = false,
-        deprecated = false  // No deprecation warning for RSA itself
+        deprecated = false  
     ),
-
     RSA_PSS(
         displayName = "RSA-PSS",
         cliName = "rsassa-pss",
@@ -37,7 +36,6 @@ enum class KeyAlgorithm(
         supportsKeyAgreement = false
     ),
 
-    // ===== DSA (DIGITAL SIGNATURE ALGORITHM) =====
     DSA(
         displayName = "DSA",
         cliName = "dsa",
@@ -45,20 +43,18 @@ enum class KeyAlgorithm(
         defaultKeySize = 2048,
         supportsSignature = true,
         supportsKeyAgreement = false,
-        deprecated = true  // Legacy algorithm, shows deprecation warning
+        deprecated = true  
     ),
 
-    // ===== EC (ELLIPTIC CURVE) =====
     EC(
         displayName = "EC",
         cliName = "ec",
-        supportedKeySizes = 160..571,  // Depends on curve, see ECCurve
-        defaultKeySize = 384,  // JDK 25+ default (secp384r1)
+        supportedKeySizes = 160..571,  
+        defaultKeySize = 384,  
         supportsSignature = true,
         supportsKeyAgreement = false
     ),
 
-    // ===== EDWARDS CURVE DIGITAL SIGNATURE ALGORITHM (EdDSA) =====
     ED25519(
         displayName = "EdDSA (Ed25519)",
         cliName = "Ed25519",
@@ -67,7 +63,6 @@ enum class KeyAlgorithm(
         supportsSignature = true,
         supportsKeyAgreement = false
     ),
-
     ED448(
         displayName = "EdDSA (Ed448)",
         cliName = "Ed448",
@@ -82,11 +77,10 @@ enum class KeyAlgorithm(
         displayName = "DH",
         cliName = "dh",
         supportedKeySizes = 512..8192,
-        defaultKeySize = 3072,  // JDK 25+ default
+        defaultKeySize = 3072,  
         supportsSignature = false,
         supportsKeyAgreement = true
     ),
-
     X25519(
         displayName = "XDH (X25519)",
         cliName = "X25519",
@@ -95,7 +89,6 @@ enum class KeyAlgorithm(
         supportsSignature = false,
         supportsKeyAgreement = true
     ),
-
     X448(
         displayName = "XDH (X448)",
         cliName = "X448",
@@ -113,7 +106,7 @@ enum class KeyAlgorithm(
     ML_DSA_44(
         displayName = "ML-DSA (44)",
         cliName = "ML-DSA",
-        supportedKeySizes = -1..-1,  // Parameter-set based, not bits
+        supportedKeySizes = -1..-1,  
         defaultKeySize = -1,
         supportsSignature = true,
         supportsKeyAgreement = false,
@@ -159,7 +152,6 @@ enum class KeyAlgorithm(
         supportsKeyAgreement = true,
         isQuantumResistant = true
     ),
-
     ML_KEM_768(
         displayName = "ML-KEM (768)",
         cliName = "ML-KEM",
@@ -169,7 +161,6 @@ enum class KeyAlgorithm(
         supportsKeyAgreement = true,
         isQuantumResistant = true
     ),
-
     ML_KEM_1024(
         displayName = "ML-KEM (1024)",
         cliName = "ML-KEM",
@@ -189,7 +180,6 @@ enum class KeyAlgorithm(
         supportsSignature = false,
         supportsKeyAgreement = false
     ),
-
     TRIPLE_DES(
         displayName = "TripleDES",
         cliName = "TripleDES",
@@ -197,7 +187,7 @@ enum class KeyAlgorithm(
         defaultKeySize = 168,
         supportsSignature = false,
         supportsKeyAgreement = false,
-        deprecated = true  // Legacy, shows deprecation warning
+        deprecated = true  
     );
 
     companion object {
@@ -236,7 +226,7 @@ enum class KeyAlgorithm(
      * Check if a given key size is valid for this algorithm
      */
     fun isValidKeySize(size: Int): Boolean {
-        // For parameter-set based algorithms (ML-DSA, ML-KEM), keysize -1 means N/A
+        
         if (defaultKeySize == -1) return size == -1
         return size in supportedKeySizes
     }

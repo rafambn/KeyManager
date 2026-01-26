@@ -9,8 +9,8 @@ package unidesk.com.br.keymanager.core.domain
 enum class SignatureAlgorithm(
     val cliName: String,
     val displayName: String,
-    val keyAlgorithmFamily: String,  // "RSA", "EC", "DSA", "EdDSA", "ML-DSA"
-    val hashAlgorithm: String,       // "SHA256", "SHA384", etc., or "MD5" for disabled
+    val keyAlgorithmFamily: String,  
+    val hashAlgorithm: String,       
     val deprecated: Boolean = false,
     val disabled: Boolean = false
 ) {
@@ -266,39 +266,33 @@ enum class SignatureAlgorithm(
          */
         fun selectDefault(keyAlgorithm: KeyAlgorithm, keySize: Int): SignatureAlgorithm {
             return when (keyAlgorithm) {
-                // RSA: Select based on key size (JDK 25+ alignment with CNSA)
+                
                 KeyAlgorithm.RSA -> when {
-                    keySize < 3072 -> SHA256_WITH_RSA       // < 3072: SHA256
-                    keySize < 7680 -> SHA384_WITH_RSA       // 3072-7680: SHA384
-                    else -> SHA512_WITH_RSA                 // > 7680: SHA512
+                    keySize < 3072 -> SHA256_WITH_RSA       
+                    keySize < 7680 -> SHA384_WITH_RSA       
+                    else -> SHA512_WITH_RSA                 
                 }
-
-                // RSA-PSS: Same sizing as RSA
+                
                 KeyAlgorithm.RSA_PSS -> when {
                     keySize < 3072 -> SHA256_WITH_RSA_PSS
                     keySize < 7680 -> SHA384_WITH_RSA_PSS
                     else -> SHA512_WITH_RSA_PSS
                 }
-
-                // EC: Select based on curve size (JDK 25+ alignment with CNSA)
+                
                 KeyAlgorithm.EC -> when {
-                    keySize < 384 -> SHA256_WITH_ECDSA      // < 384: SHA256 (P-256)
-                    keySize < 512 -> SHA384_WITH_ECDSA      // 384-511: SHA384 (P-384)
-                    else -> SHA512_WITH_ECDSA               // >= 512: SHA512 (P-521)
+                    keySize < 384 -> SHA256_WITH_ECDSA      
+                    keySize < 512 -> SHA384_WITH_ECDSA      
+                    else -> SHA512_WITH_ECDSA               
                 }
-
-                // DSA: Always SHA256
+                
                 KeyAlgorithm.DSA -> SHA256_WITH_DSA
-
-                // EdDSA: Algorithm determines signature algorithm
+                
                 KeyAlgorithm.ED25519 -> ED25519
                 KeyAlgorithm.ED448 -> ED448
-
-                // ML-DSA: Quantum-resistant signature
+                
                 KeyAlgorithm.ML_DSA_44, KeyAlgorithm.ML_DSA_65, KeyAlgorithm.ML_DSA_87 -> ML_DSA
-
-                // Symmetric and key agreement algorithms: No signatures
-                else -> SHA256_WITH_RSA  // Fallback (should not happen with proper validation)
+                
+                else -> SHA256_WITH_RSA  
             }
         }
 

@@ -1,5 +1,4 @@
 package unidesk.com.br.keymanager.ui.panes
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,7 +41,6 @@ import unidesk.com.br.keymanager.ui.components.cards.KeyCard
 import unidesk.com.br.keymanager.ui.components.common.EmptyState
 import unidesk.com.br.keymanager.ui.components.common.SearchBar
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
-
 @Composable
 fun KeysPane(
     selectedSession: KeystoreSession?,
@@ -63,7 +61,6 @@ fun KeysPane(
     modifier: Modifier = Modifier
 ) {
     var showFilterMenu by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -82,7 +79,7 @@ fun KeysPane(
                 description = stringResource(Res.string.empty_keystore_locked_desc)
             )
         } else {
-            // Header
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -94,7 +91,6 @@ fun KeysPane(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-
                 if (selectedSession.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier
@@ -112,10 +108,8 @@ fun KeysPane(
                     }
                 }
             }
-
             Spacer(Modifier.height(12.dp))
-
-            // Search and Filter
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -176,10 +170,8 @@ fun KeysPane(
                     )
                 }
             }
-
             Spacer(Modifier.height(12.dp))
-
-            // Keys List
+            
             if (keys.isEmpty()) {
                 EmptyState(
                     icon = Icons.Default.Key,

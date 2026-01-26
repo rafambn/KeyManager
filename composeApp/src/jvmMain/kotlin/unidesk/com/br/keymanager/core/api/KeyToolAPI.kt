@@ -1,10 +1,8 @@
 package unidesk.com.br.keymanager.core.api
-
 import java.io.File
 import unidesk.com.br.keymanager.core.model.*
 import unidesk.com.br.keymanager.core.domain.*
 import unidesk.com.br.keymanager.core.KeytoolResult
-
 object KeyToolAPI {
 
     // ===== 1. LIST → KeystoreInfo =====
@@ -15,9 +13,7 @@ object KeyToolAPI {
     ): KeytoolResult<KeystoreInfo> {
         val args = mutableListOf("-list", "-keystore", keystore.absolutePath, "-storepass", storepass)
         if (verbose) args.add("-v")
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             try {
                 val parsed = KeyToolParser.parseListVerboseOutput(result.stdout)
@@ -43,20 +39,17 @@ object KeyToolAPI {
         signatureAlgorithm: SignatureAlgorithm? = null,
         ecCurve: ECCurve? = null
     ): KeytoolResult<Unit> {
-        // Determine final key size
+        
         val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-
-        // Validate key size for algorithm
+        
         if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
             return KeytoolResult.Error(
                 "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
                 -1
             )
         }
-
-        // Auto-select signature algorithm if not provided
+        
         val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, finalKeySize)
-
         val args = mutableListOf(
             "-genkeypair",
             "-alias", alias,
@@ -69,9 +62,7 @@ object KeyToolAPI {
             "-storepass", storepass,
             "-keypass", keypass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -88,25 +79,22 @@ object KeyToolAPI {
         keyAlgorithm: KeyAlgorithm,
         keySize: Int? = null
     ): KeytoolResult<Unit> {
-        // Determine final key size
+        
         val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-
-        // Validate key size for algorithm
+        
         if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
             return KeytoolResult.Error(
                 "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
                 -1
             )
         }
-
-        // Validate algorithm supports symmetric keys
+        
         if (keyAlgorithm !in listOf(KeyAlgorithm.AES, KeyAlgorithm.TRIPLE_DES)) {
             return KeytoolResult.Error(
                 "${keyAlgorithm.displayName} is not a symmetric key algorithm (valid: AES, TripleDES)",
                 -1
             )
         }
-
         val args = listOf(
             "-genseckey",
             "-alias", alias,
@@ -116,9 +104,7 @@ object KeyToolAPI {
             "-storepass", storepass,
             "-keypass", keypass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -154,9 +140,7 @@ object KeyToolAPI {
         if (signatureAlgorithm != null) {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -186,9 +170,7 @@ object KeyToolAPI {
         if (signatureAlgorithm != null) {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -214,9 +196,7 @@ object KeyToolAPI {
         if (rfc) {
             args.add("-rfc")
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -250,9 +230,7 @@ object KeyToolAPI {
         if (noprompt) {
             args.add("-noprompt")
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -294,9 +272,7 @@ object KeyToolAPI {
         if (noprompt) {
             args.add("-noprompt")
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -318,9 +294,7 @@ object KeyToolAPI {
             "-storepass", storepass,
             "-keypass", keypass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -340,9 +314,7 @@ object KeyToolAPI {
             "-keystore", keystore.absolutePath,
             "-storepass", storepass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -368,9 +340,7 @@ object KeyToolAPI {
         if (keypass != null) {
             args.addAll(listOf("-keypass", keypass))
         }
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -394,9 +364,7 @@ object KeyToolAPI {
             "-keystore", keystore.absolutePath,
             "-storepass", storepass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -416,9 +384,7 @@ object KeyToolAPI {
             "-keystore", keystore.absolutePath,
             "-storepass", storepass
         )
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {
@@ -433,9 +399,7 @@ object KeyToolAPI {
     ): KeytoolResult<CertificateInfo> {
         val args = mutableListOf("-printcert", "-file", file.absolutePath)
         if (verbose) args.add("-v")
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             try {
                 val parsed = KeyToolParser.parseCertificateOutput(result.stdout)
@@ -455,9 +419,7 @@ object KeyToolAPI {
     ): KeytoolResult<CertRequestInfo> {
         val args = mutableListOf("-printcertreq", "-file", file.absolutePath)
         if (verbose) args.add("-v")
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             try {
                 val parsed = KeyToolParser.parseCertReqOutput(result.stdout)
@@ -477,9 +439,7 @@ object KeyToolAPI {
     ): KeytoolResult<CrlInfo> {
         val args = mutableListOf("-printcrl", "-file", file.absolutePath)
         if (verbose) args.add("-v")
-
         val result = KeyToolExecutor.execute(*args.toTypedArray())
-
         return if (result.exitCode == 0) {
             try {
                 val parsed = KeyToolParser.parseCrlOutput(result.stdout)

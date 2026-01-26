@@ -10,7 +10,6 @@ import keymanager.composeapp.generated.resources.*
 import java.awt.Dimension
 
 fun main() = application {
-    // Load and set locale BEFORE any Compose resources are accessed
     val prefs = java.util.prefs.Preferences.userRoot().node("keymanager")
     val savedLanguage = prefs.get("selected_language", "pt-BR")
 

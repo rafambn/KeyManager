@@ -41,7 +41,7 @@ class SettingsRepository {
     }
 
     private fun loadSettings() {
-        // Load recent keystores
+
         val recentJson = settings.getStringOrNull(KEY_RECENT_KEYSTORES)
         if (recentJson != null) {
             try {
@@ -51,16 +51,16 @@ class SettingsRepository {
             }
         }
 
-        // Load dark mode preference
+
         _isDarkMode.value = settings.getBoolean(KEY_DARK_MODE, false)
 
-        // Load default keystore format
+
         _defaultKeystoreFormat.value = settings.getString(KEY_DEFAULT_FORMAT, "PKCS12")
 
-        // Load auto-lock timeout
+
         _autoLockTimeoutMinutes.value = settings.getInt(KEY_AUTO_LOCK_TIMEOUT, 0)
 
-        // Load selected language
+
         _selectedLanguage.value = settings.getString(KEY_SELECTED_LANGUAGE, "pt-BR")
     }
 
@@ -75,13 +75,13 @@ class SettingsRepository {
 
         val currentList = _recentKeystores.value.toMutableList()
 
-        // Remove existing entry for the same path
+
         currentList.removeAll { it.path == path }
 
-        // Add new entry at the beginning
+
         currentList.add(0, newRecent)
 
-        // Limit to 10 recent entries
+
         val trimmedList = currentList.take(MAX_RECENT_KEYSTORES)
 
         _recentKeystores.value = trimmedList
@@ -124,7 +124,7 @@ class SettingsRepository {
         _selectedLanguage.value = languageCode
         settings.putString(KEY_SELECTED_LANGUAGE, languageCode)
 
-        // Update JVM system locale at runtime
+
         val (lang, country) = if (languageCode.contains("-")) {
             val parts = languageCode.split("-")
             parts[0] to parts[1]
@@ -137,7 +137,7 @@ class SettingsRepository {
             System.setProperty("user.country", country)
         }
 
-        // Update default JVM locale
+
         val locale = if (country.isNotEmpty()) {
             java.util.Locale(lang, country)
         } else {

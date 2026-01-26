@@ -1,6 +1,4 @@
 package unidesk.com.br.keymanager.core.model
-
-// CSR info (for printCertReq)
 data class CertRequestInfo(
     val subject: String,
     val algorithm: String,

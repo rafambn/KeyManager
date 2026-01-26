@@ -1,5 +1,4 @@
 package unidesk.com.br.keymanager.ui.components.dialogs
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,14 +29,12 @@ import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.ui.components.common.ValidityBadge
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
-
 @Composable
 fun KeyDetailsDialog(
     keyInfo: KeyInfo,
     onDismiss: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.width(500.dp),
@@ -52,13 +49,10 @@ fun KeyDetailsDialog(
                     text = "Key Details",
                     style = MaterialTheme.typography.headlineSmall
                 )
-
                 Spacer(Modifier.height(24.dp))
-
-                // Alias
+                
                 DetailRow(label = "Alias", value = keyInfo.alias)
-
-                // Type
+                
                 val typeLabel = when (keyInfo.entryType) {
                     EntryType.PRIVATE_KEY -> "Private Key Entry"
                     EntryType.TRUSTED_CERT -> "Trusted Certificate Entry"
@@ -66,35 +60,27 @@ fun KeyDetailsDialog(
                     EntryType.UNKNOWN -> "Unknown Entry Type"
                 }
                 DetailRow(label = "Entry Type", value = typeLabel)
-
-                // Algorithm
+                
                 DetailRow(label = "Algorithm", value = keyInfo.algorithm)
-
-                // Certificate Chain
+                
                 keyInfo.certificateChainLength?.let {
                     DetailRow(label = "Certificate Chain", value = "$it certificate(s)")
                 }
-
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // Owner
+                
                 keyInfo.owner?.let {
                     DetailRow(label = "Owner", value = it)
                 }
-
-                // Issuer
+                
                 keyInfo.issuer?.let {
                     DetailRow(label = "Issuer", value = it)
                 }
-
-                // Serial Number
+                
                 keyInfo.serialNumber?.let {
                     DetailRow(label = "Serial Number", value = it)
                 }
-
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // Validity
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -107,26 +93,20 @@ fun KeyDetailsDialog(
                     )
                     ValidityBadge(validUntil = keyInfo.validUntil)
                 }
-
                 Spacer(Modifier.height(8.dp))
-
                 keyInfo.validFrom?.let {
                     DetailRow(label = "Valid From", value = it)
                 }
-
                 keyInfo.validUntil?.let {
                     DetailRow(label = "Valid Until", value = it)
                 }
-
-                // Creation Date
+                
                 keyInfo.creationDate?.let {
                     DetailRow(label = "Created", value = it)
                 }
-
-                // Fingerprint
+                
                 keyInfo.fingerprint?.let { fingerprint ->
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -158,9 +138,7 @@ fun KeyDetailsDialog(
                         }
                     }
                 }
-
                 Spacer(Modifier.height(24.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -173,7 +151,6 @@ fun KeyDetailsDialog(
         }
     }
 }
-
 @Composable
 private fun DetailRow(
     label: String,

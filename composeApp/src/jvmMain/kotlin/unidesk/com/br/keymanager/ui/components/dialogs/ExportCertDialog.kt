@@ -1,5 +1,4 @@
 package unidesk.com.br.keymanager.ui.components.dialogs
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +27,6 @@ import androidx.compose.ui.window.Dialog
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-
 @Composable
 fun ExportCertDialog(
     alias: String,
@@ -38,7 +36,6 @@ fun ExportCertDialog(
     var filePath by remember { mutableStateOf("") }
     var asPem by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.width(400.dp),
@@ -51,25 +48,19 @@ fun ExportCertDialog(
                     text = "Export Certificate",
                     style = MaterialTheme.typography.headlineSmall
                 )
-
                 Spacer(Modifier.height(8.dp))
-
                 Text(
                     text = "Alias: $alias",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 Spacer(Modifier.height(24.dp))
-
-                // Format Selection
+                
                 Text(
                     text = "Format",
                     style = MaterialTheme.typography.labelLarge
                 )
-
                 Spacer(Modifier.height(8.dp))
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -82,7 +73,6 @@ fun ExportCertDialog(
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -95,10 +85,8 @@ fun ExportCertDialog(
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
-
                 Spacer(Modifier.height(16.dp))
-
-                // File Path
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -119,7 +107,7 @@ fun ExportCertDialog(
                             dialog.isVisible = true
                             if (dialog.directory != null && dialog.file != null) {
                                 var selectedFile = dialog.file
-                                // Ensure correct extension
+                                
                                 if (!selectedFile.endsWith(extension)) {
                                     selectedFile = if (selectedFile.contains(".")) {
                                         selectedFile.substringBeforeLast(".") + extension
@@ -134,7 +122,6 @@ fun ExportCertDialog(
                         Text("Browse")
                     }
                 }
-
                 if (error != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -143,9 +130,7 @@ fun ExportCertDialog(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-
                 Spacer(Modifier.height(24.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End

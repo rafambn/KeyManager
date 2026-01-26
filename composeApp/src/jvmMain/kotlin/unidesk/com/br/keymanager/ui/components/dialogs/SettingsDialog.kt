@@ -84,7 +84,7 @@ fun SettingsDialog(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Dark Mode
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -111,7 +111,7 @@ fun SettingsDialog(
                 HorizontalDivider()
                 Spacer(Modifier.height(16.dp))
 
-                // Default Keystore Format
+
                 Text(
                     text = stringResource(Res.string.settings_keystore_format),
                     style = MaterialTheme.typography.bodyLarge
@@ -157,7 +157,7 @@ fun SettingsDialog(
                 HorizontalDivider()
                 Spacer(Modifier.height(16.dp))
 
-                // Auto-lock Timeout
+
                 Text(
                     text = stringResource(Res.string.settings_auto_lock),
                     style = MaterialTheme.typography.bodyLarge
@@ -203,7 +203,7 @@ fun SettingsDialog(
                 HorizontalDivider()
                 Spacer(Modifier.height(16.dp))
 
-                // Language Selection
+
                 Text(
                     text = stringResource(Res.string.settings_language),
                     style = MaterialTheme.typography.bodyLarge

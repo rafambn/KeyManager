@@ -71,17 +71,14 @@ class AppViewModel(
         selectedBulkAliases.clear()
     }
 
-    // Keystore Operations
-
     fun openKeystore(file: File) {
-        // Check if already open
+
         val existingSession = _state.value.keystoreSessions.values.find { it.path == file.absolutePath }
         if (existingSession != null) {
             selectKeystore(existingSession.id)
             return
         }
 
-        // Create new session in locked state
         val session = KeystoreSession(
             file = file,
             isLoading = false
@@ -120,7 +117,7 @@ class AppViewModel(
                         )
                     }
 
-                    // Add to recent keystores
+
                     settingsRepository.addRecentKeystore(
                         path = session.path,
                         name = session.name,
@@ -184,7 +181,6 @@ class AppViewModel(
 
     fun createKeystore(file: File, password: String, format: String) {
         viewModelScope.launch {
-            // Create keystore by adding a temporary key
             val tempAlias = "__temp_init_key__"
             val result = KeyToolAPI.genKeyPair(
                 keystore = file,
@@ -197,9 +193,8 @@ class AppViewModel(
 
             when (result) {
                 is KeytoolResult.Success -> {
-                    // Delete the temporary key
                     KeyToolAPI.delete(file, password, tempAlias)
-                    // Open the keystore
+
                     openKeystore(file)
                     settingsRepository.addRecentKeystore(file.absolutePath, file.name)
                     _eventChannel.trySend(AppEvent.ShowError("Keystore created successfully"))
@@ -274,8 +269,6 @@ class AppViewModel(
     fun removeFromRecent(path: String) {
         settingsRepository.removeRecentKeystore(path)
     }
-
-    // Key Operations
 
     fun selectKey(alias: String?) {
         _state.update { state ->
@@ -360,7 +353,6 @@ class AppViewModel(
                 keypass = effectiveKeyPassword
             )) {
                 is KeytoolResult.Success -> {
-                    // Update key password cache if exists
                     if (session.keyPasswords.containsKey(oldAlias)) {
                         val newPasswords = session.keyPasswords - oldAlias + (newAlias to effectiveKeyPassword)
                         _state.update { state ->
@@ -403,7 +395,7 @@ class AppViewModel(
                     when (val deleteResult = KeyToolAPI.delete(session.file, sourcePassword, alias)) {
                         is KeytoolResult.Success -> {
                             refreshKeystore(session.id)
-                            // Also refresh target if it's open
+
                             val targetSession = _state.value.keystoreSessions.values.find { it.path == targetFile.absolutePath }
                             targetSession?.let { refreshKeystore(it.id) }
 
@@ -440,7 +432,7 @@ class AppViewModel(
                 validity = validityDays
             )) {
                 is KeytoolResult.Success -> {
-                    // Cache key password if different from store password
+
                     if (keyPassword != null && keyPassword != storePassword) {
                         _state.update { state ->
                             state.copy(
@@ -485,7 +477,7 @@ class AppViewModel(
                 )) {
                     is KeytoolResult.Success -> {
                         when (val deleteResult = KeyToolAPI.delete(session.file, sourcePassword, alias)) {
-                            is KeytoolResult.Success -> { /* Success */ }
+                             is KeytoolResult.Success -> { }
                             is KeytoolResult.Error -> {
                                 errors.add("$alias: Copied but failed to delete from source: ${deleteResult.message}")
                             }
@@ -505,7 +497,7 @@ class AppViewModel(
             clearSelectedBulkAliases()
             refreshKeystore(session.id)
 
-            // Also refresh target if it's open
+
             val targetSession = _state.value.keystoreSessions.values.find { it.path == targetFile.absolutePath }
             targetSession?.let { refreshKeystore(it.id) }
 
@@ -525,7 +517,7 @@ class AppViewModel(
         }
     }
 
-    // Advanced Operations
+
 
     fun exportCertificate(alias: String, outputFile: File, asPem: Boolean) {
         val session = _state.value.selectedSession ?: return
@@ -554,7 +546,7 @@ class AppViewModel(
         viewModelScope.launch {
             when (val result = KeyToolAPI.printCrl(file, verbose = true)) {
                 is KeytoolResult.Success -> {
-                    // Return CRL info through event
+
                     _eventChannel.trySend(AppEvent.ShowError("CRL inspection completed"))
                 }
 
@@ -576,7 +568,7 @@ class AppViewModel(
                 newStorepass = newPassword
             )) {
                 is KeytoolResult.Success -> {
-                    // Update the session with new password
+
                     _state.update { state ->
                         state.copy(
                             keystoreSessions = state.keystoreSessions + (session.id to session.copy(
@@ -607,7 +599,7 @@ class AppViewModel(
                 newKeypass = newPassword
             )) {
                 is KeytoolResult.Success -> {
-                    // Update the cached key password
+
                     _state.update { state ->
                         state.copy(
                             keystoreSessions = state.keystoreSessions + (session.id to session.copy(
@@ -625,7 +617,7 @@ class AppViewModel(
         }
     }
 
-    // Search and Filter
+
 
     fun setKeystoreSearchQuery(query: String) {
         _state.update { it.copy(keystoreSearchQuery = query) }
@@ -643,7 +635,7 @@ class AppViewModel(
         _state.update { it.copy(keyTypeFilter = filter) }
     }
 
-    // Settings
+
 
     fun setDarkMode(enabled: Boolean) {
         settingsRepository.setDarkMode(enabled)
@@ -661,7 +653,7 @@ class AppViewModel(
         settingsRepository.setLanguage(languageCode)
     }
 
-    // Error handling
+
 
     fun clearError() {
         _state.update { it.copy(globalError = null) }

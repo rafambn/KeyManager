@@ -62,7 +62,7 @@ fun KeystoresPane(
 ) {
     var showSortMenu by remember { mutableStateOf(false) }
 
-    // Filter out recent keystores that are already open
+
     val openPaths = openKeystores.map { it.path }.toSet()
     val filteredRecents = recentKeystores.filter { it.path !in openPaths }
 
@@ -71,7 +71,7 @@ fun KeystoresPane(
             .fillMaxSize()
             .padding(12.dp)
     ) {
-        // Search and Sort
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -135,7 +135,7 @@ fun KeystoresPane(
                 contentPadding = PaddingValues(vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Recent Keystores Section
+
                 if (filteredRecents.isNotEmpty()) {
                     item {
                         SectionHeader(title = stringResource(Res.string.table_header_recent))
@@ -152,7 +152,7 @@ fun KeystoresPane(
                     }
                 }
 
-                // Open Keystores Section
+
                 if (openKeystores.isNotEmpty()) {
                     item {
                         if (filteredRecents.isNotEmpty()) {

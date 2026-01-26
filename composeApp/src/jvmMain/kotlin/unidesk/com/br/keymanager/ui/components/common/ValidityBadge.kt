@@ -110,7 +110,7 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
     if (validUntil.isNullOrBlank()) return ValidityStatus.UNKNOWN
 
     return try {
-        // Try multiple date formats to handle different locales
+
         val expiryDate = parseDateFlexible(validUntil)
         val today = LocalDate.now()
         val daysUntilExpiry = ChronoUnit.DAYS.between(today, expiryDate)
@@ -128,25 +128,25 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
 private fun parseDateFlexible(dateString: String): LocalDate {
     val trimmed = dateString.trim()
 
-    // Try parsing with English locale first
+
     try {
         val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale.ENGLISH)
         val dateTime = ZonedDateTime.parse(trimmed, formatter)
         return dateTime.toLocalDate()
     } catch (e: Exception) {
-        // Continue to next format
+
     }
 
-    // Try parsing with Portuguese locale
+
     try {
         val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale("pt", "BR"))
         val dateTime = ZonedDateTime.parse(trimmed, formatter)
         return dateTime.toLocalDate()
     } catch (e: Exception) {
-        // Continue to next format
+
     }
 
-    // Try ISO format (last 4 digits for year, then back to extract the full date)
+
     try {
         val parts = trimmed.split(" ")
         if (parts.size >= 3) {
@@ -171,17 +171,17 @@ private fun parseDateFlexible(dateString: String): LocalDate {
             return LocalDate.parse(isoDate)
         }
     } catch (e: Exception) {
-        // Continue to next format
+
     }
 
-    // Final fallback: try to extract just the date portion
+
     try {
         val isoMatch = Regex("""(\d{4})-(\d{2})-(\d{2})""").find(trimmed)
         if (isoMatch != null) {
             return LocalDate.parse(isoMatch.value)
         }
     } catch (e: Exception) {
-        // Fall through to throw
+
     }
 
     throw IllegalArgumentException("Could not parse date: $dateString")

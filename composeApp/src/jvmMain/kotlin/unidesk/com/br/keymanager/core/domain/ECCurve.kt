@@ -95,9 +95,6 @@ enum class ECCurve(
             }
         }
 
-        /**
-         * Get the default EC curve (JDK 25+)
-         */
         fun default(): ECCurve = P384
 
         /**
@@ -107,17 +104,11 @@ enum class ECCurve(
             return values().filter { !it.deprecated }
         }
 
-        /**
-         * Get all deprecated curves
-         */
         fun deprecatedCurves(): List<ECCurve> {
             return values().filter { it.deprecated }
         }
     }
 
-    /**
-     * Check if this curve is deprecated
-     */
     fun isDeprecated(): Boolean = deprecated
 
     /**

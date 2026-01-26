@@ -14,7 +14,6 @@ fun App() {
     val isDarkMode by appViewModel.isDarkMode.collectAsState()
     val selectedLanguage by appViewModel.selectedLanguage.collectAsState()
 
-    // Force complete recomposition when language changes
     key(selectedLanguage) {
         AppTheme(useDarkTheme = isDarkMode) {
             NavigationRoot()

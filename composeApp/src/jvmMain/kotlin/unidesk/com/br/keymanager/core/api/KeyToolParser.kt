@@ -1,18 +1,13 @@
 package unidesk.com.br.keymanager.core.api
-
 import unidesk.com.br.keymanager.core.model.*
 import unidesk.com.br.keymanager.core.domain.*
-
 internal object KeyToolParser {
-
     internal fun parseListVerboseOutput(output: String): KeystoreInfo {
         val lines = output.lines()
-
-        // Parse header info
+        
         var type = "Unknown"
         var provider = "Unknown"
         var entryCount = 0
-
         for (line in lines) {
             val trimmed = line.trim()
             when {
@@ -28,22 +23,18 @@ internal object KeyToolParser {
                 }
             }
         }
-
-        // Split by "Alias name:" to get individual entries
+        
         val entryBlocks = output.split(Regex("(?=Alias name:)")).filter { it.contains("Alias name:") }
         val entries = entryBlocks.map { parseKeystoreEntry(it) }
-
-        // Log warning if entry count mismatch
+        
         if (entries.size != entryCount && entryCount > 0) {
             System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
         }
-
-        // Validate keystore has critical information
+        
         if (type.isEmpty() || type == "Unknown") {
             throw IllegalArgumentException("Could not determine keystore type from output")
         }
-
-        // Log if any entries have missing critical fields
+        
         entries.forEach { entry ->
             if (entry.alias.isBlank()) {
                 throw IllegalArgumentException("Parsed entry with blank alias")
@@ -52,25 +43,21 @@ internal object KeyToolParser {
                 throw IllegalArgumentException("Could not determine entry type for alias '${entry.alias}'")
             }
         }
-
         return KeystoreInfo(type, provider, entryCount, entries)
     }
-
     internal fun parseKeystoreEntry(block: String): KeystoreEntry {
         val lines = block.lines()
-
         var alias = ""
         var creationDate = ""
         var entryType = EntryType.UNKNOWN
         var chainLength: Int? = null
         var owner: String? = null
         var issuer: String? = null
-        var keyAlgorithm: String? = null  // Subject Public Key Algorithm (RSA, EC, etc.)
+        var keyAlgorithm: String? = null  
         var serialNumber: String? = null
         var validFrom: String? = null
         var validUntil: String? = null
         var fingerprint: String? = null
-
         for (line in lines) {
             val trimmed = line.trim()
             when {
@@ -102,7 +89,7 @@ internal object KeyToolParser {
                     serialNumber = trimmed.substringAfter("Serial number:").trim()
                 }
                 trimmed.startsWith("Valid from:") -> {
-                    // Format: "Valid from: Mon Jan 22 10:00:00 BRT 2026 until: Mon Jan 22 10:00:00 BRT 2027"
+                    
                     val parts = trimmed.substringAfter("Valid from:").split("until:")
                     validFrom = parts.getOrNull(0)?.trim()
                     validUntil = parts.getOrNull(1)?.trim()
@@ -110,10 +97,10 @@ internal object KeyToolParser {
                 trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
                     fingerprint = trimmed.substringAfter(":").trim()
                 }
-                // Extract the key algorithm from "Subject Public Key Algorithm: 2048-bit RSA key"
+                
                 trimmed.startsWith("Subject Public Key Algorithm:") -> {
                     val algStr = trimmed.substringAfter("Subject Public Key Algorithm:").trim()
-                    // Extract algorithm type (RSA, EC, DSA, etc.) from strings like "2048-bit RSA key" or "256-bit EC key"
+                    
                     keyAlgorithm = when {
                         algStr.contains("RSA", ignoreCase = true) -> "RSA"
                         algStr.contains("EC", ignoreCase = true) -> "EC"
@@ -123,7 +110,6 @@ internal object KeyToolParser {
                 }
             }
         }
-
         return KeystoreEntry(
             alias = alias,
             creationDate = creationDate,
@@ -138,10 +124,8 @@ internal object KeyToolParser {
             fingerprint = fingerprint
         )
     }
-
     internal fun parseCertificateOutput(output: String): CertificateInfo {
         val lines = output.lines()
-
         var owner = ""
         var issuer = ""
         var serialNumber = ""
@@ -149,7 +133,6 @@ internal object KeyToolParser {
         var validUntil = ""
         var algorithm = ""
         val fingerprints = mutableMapOf<String, String>()
-
         for (line in lines) {
             val trimmed = line.trim()
             when {
@@ -184,22 +167,17 @@ internal object KeyToolParser {
                 }
             }
         }
-
-        // Validate critical fields are present
+        
         if (owner.isEmpty() || issuer.isEmpty() || serialNumber.isEmpty()) {
             throw IllegalArgumentException("Missing critical certificate fields: owner=$owner, issuer=$issuer, serialNumber=$serialNumber")
         }
-
         return CertificateInfo(owner, issuer, serialNumber, validFrom, validUntil, algorithm, fingerprints)
     }
-
     internal fun parseCertReqOutput(output: String): CertRequestInfo {
         val lines = output.lines()
-
         var subject = ""
         var algorithm = ""
         val extensions = mutableListOf<String>()
-
         for (line in lines) {
             val trimmed = line.trim()
             when {
@@ -214,25 +192,19 @@ internal object KeyToolParser {
                 }
             }
         }
-
-        // Validate critical fields are present
+        
         if (subject.isEmpty() || algorithm.isEmpty()) {
             throw IllegalArgumentException("Missing critical certificate request fields: subject=$subject, algorithm=$algorithm")
         }
-
         return CertRequestInfo(subject, algorithm, extensions)
     }
-
     internal fun parseCrlOutput(output: String): CrlInfo {
         val lines = output.lines()
-
         var issuer = ""
         var thisUpdate = ""
         var nextUpdate: String? = null
         val revokedCerts = mutableListOf<String>()
-
         var inRevokedSection = false
-
         for (line in lines) {
             val trimmed = line.trim()
             when {
@@ -253,12 +225,10 @@ internal object KeyToolParser {
                 }
             }
         }
-
-        // Validate critical fields are present
+        
         if (issuer.isEmpty() || thisUpdate.isEmpty()) {
             throw IllegalArgumentException("Missing critical CRL fields: issuer=$issuer, thisUpdate=$thisUpdate")
         }
-
         return CrlInfo(issuer, thisUpdate, nextUpdate, revokedCerts)
     }
 }

@@ -1,5 +1,4 @@
 package unidesk.com.br.keymanager.ui.components.dialogs
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +32,6 @@ import androidx.compose.ui.window.Dialog
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateKeystoreDialog(
@@ -46,9 +44,7 @@ fun CreateKeystoreDialog(
     var format by remember { mutableStateOf("PKCS12") }
     var formatExpanded by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-
     val formats = listOf("PKCS12", "JKS")
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.width(400.dp),
@@ -61,10 +57,8 @@ fun CreateKeystoreDialog(
                     text = "Create New Keystore",
                     style = MaterialTheme.typography.headlineSmall
                 )
-
                 Spacer(Modifier.height(24.dp))
-
-                // File Path
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -90,10 +84,8 @@ fun CreateKeystoreDialog(
                         Text("Browse")
                     }
                 }
-
                 Spacer(Modifier.height(16.dp))
-
-                // Format Dropdown
+                
                 ExposedDropdownMenuBox(
                     expanded = formatExpanded,
                     onExpandedChange = { formatExpanded = it }
@@ -123,10 +115,8 @@ fun CreateKeystoreDialog(
                         }
                     }
                 }
-
                 Spacer(Modifier.height(16.dp))
-
-                // Password
+                
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -135,10 +125,8 @@ fun CreateKeystoreDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 Spacer(Modifier.height(16.dp))
-
-                // Confirm Password
+                
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
@@ -148,7 +136,6 @@ fun CreateKeystoreDialog(
                     singleLine = true,
                     isError = confirmPassword.isNotEmpty() && password != confirmPassword
                 )
-
                 if (error != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -157,9 +144,7 @@ fun CreateKeystoreDialog(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-
                 Spacer(Modifier.height(24.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End

@@ -64,7 +64,7 @@ enum class KeystoreFormat(
     PKCS11(
         cliName = "pkcs11",
         displayName = "PKCS11",
-        fileExtension = null,  // No file extension (uses device)
+        fileExtension = null,  
         isBinary = false
     ),
 
@@ -128,9 +128,6 @@ enum class KeystoreFormat(
         }
     }
 
-    /**
-     * Check if this format is deprecated
-     */
     fun isDeprecated(): Boolean = deprecated
 
     /**
@@ -138,9 +135,6 @@ enum class KeystoreFormat(
      */
     fun isDefault(): Boolean = defaultFormat
 
-    /**
-     * Check if this format is file-based (has file extension)
-     */
     fun isFileBased(): Boolean = fileExtension != null
 
     /**

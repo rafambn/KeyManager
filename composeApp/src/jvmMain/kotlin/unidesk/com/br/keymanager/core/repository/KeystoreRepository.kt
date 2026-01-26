@@ -1,26 +1,17 @@
 package unidesk.com.br.keymanager.core.repository
-
 import java.io.File
 import unidesk.com.br.keymanager.core.api.KeyToolAPI
 import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.core.model.KeystoreInfo
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.KeytoolResult
-
-/**
- * Stateless repository for keystore operations.
- * All operations take file and password as parameters.
- */
 class KeystoreRepository {
-
     suspend fun validateKeystore(file: File, password: String): KeytoolResult<KeystoreInfo> {
         return KeyToolAPI.list(file, password)
     }
-
     suspend fun getKeystoreInfo(file: File, password: String): KeytoolResult<KeystoreInfo> {
         return KeyToolAPI.list(file, password, verbose = true)
     }
-
     suspend fun getKeys(file: File, password: String): List<KeyInfo> {
         return when (val result = KeyToolAPI.list(file, password, verbose = true)) {
             is KeytoolResult.Success -> {
@@ -47,7 +38,6 @@ class KeystoreRepository {
             }
         }
     }
-
     suspend fun getAliases(file: File, password: String): List<String> {
         return when (val result = KeyToolAPI.list(file, password, verbose = false)) {
             is KeytoolResult.Success -> result.data.entries.map { it.alias }.sorted()
@@ -57,11 +47,9 @@ class KeystoreRepository {
             }
         }
     }
-
     suspend fun deleteAlias(file: File, password: String, alias: String): KeytoolResult<Unit> {
         return KeyToolAPI.delete(file, password, alias)
     }
-
     suspend fun moveAlias(
         sourceFile: File,
         sourcePassword: String,
@@ -70,7 +58,7 @@ class KeystoreRepository {
         targetFile: File,
         targetPassword: String
     ): KeytoolResult<Unit> {
-        // Import the alias to the target keystore
+        
         return when (val importResult = KeyToolAPI.importKeystore(
             srcKeystore = sourceFile,
             srcStorepass = sourcePassword,
@@ -81,7 +69,7 @@ class KeystoreRepository {
             destKeypass = targetPassword
         )) {
             is KeytoolResult.Success -> {
-                // Successfully imported, now delete from source
+                
                 KeyToolAPI.delete(sourceFile, sourcePassword, alias)
             }
             is KeytoolResult.Error -> {
@@ -89,7 +77,6 @@ class KeystoreRepository {
             }
         }
     }
-
     suspend fun renameAlias(
         file: File,
         storePassword: String,
@@ -105,7 +92,6 @@ class KeystoreRepository {
             keypass = keyPassword
         )
     }
-
     suspend fun createKeyPair(
         file: File,
         storePassword: String,
@@ -123,7 +109,6 @@ class KeystoreRepository {
             validity = validityDays
         )
     }
-
     suspend fun exportCertificate(
         file: File,
         storePassword: String,
@@ -139,7 +124,6 @@ class KeystoreRepository {
             rfc = rfc
         )
     }
-
     suspend fun changeStorePassword(
         file: File,
         oldPassword: String,
@@ -151,7 +135,6 @@ class KeystoreRepository {
             newStorepass = newPassword
         )
     }
-
     suspend fun changeKeyPassword(
         file: File,
         storePassword: String,

@@ -1,5 +1,4 @@
 package unidesk.com.br.keymanager.ui.components.dialogs
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +35,6 @@ import unidesk.com.br.keymanager.core.model.CrlInfo
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-
 @Composable
 fun InspectCrlDialog(
     onDismiss: () -> Unit
@@ -47,7 +45,6 @@ fun InspectCrlDialog(
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.width(500.dp),
@@ -62,10 +59,8 @@ fun InspectCrlDialog(
                     text = "Inspect CRL",
                     style = MaterialTheme.typography.headlineSmall
                 )
-
                 Spacer(Modifier.height(24.dp))
-
-                // File Path
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -90,9 +85,7 @@ fun InspectCrlDialog(
                         Text("Browse")
                     }
                 }
-
                 Spacer(Modifier.height(16.dp))
-
                 Button(
                     onClick = {
                         scope.launch {
@@ -121,7 +114,6 @@ fun InspectCrlDialog(
                         Text("Inspect")
                     }
                 }
-
                 if (error != null) {
                     Spacer(Modifier.height(16.dp))
                     Text(
@@ -130,30 +122,23 @@ fun InspectCrlDialog(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-
                 crlInfo?.let { info ->
                     Spacer(Modifier.height(24.dp))
                     HorizontalDivider()
                     Spacer(Modifier.height(16.dp))
-
                     Text(
                         text = "CRL Information",
                         style = MaterialTheme.typography.titleMedium
                     )
-
                     Spacer(Modifier.height(16.dp))
-
                     DetailRow(label = "Issuer", value = info.issuer)
                     DetailRow(label = "This Update", value = info.thisUpdate)
                     DetailRow(label = "Next Update", value = info.nextUpdate ?: "Not specified")
-
                     Spacer(Modifier.height(16.dp))
-
                     Text(
                         text = "Revoked Certificates: ${info.revokedCertificates.size}",
                         style = MaterialTheme.typography.titleSmall
                     )
-
                     if (info.revokedCertificates.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))
                         info.revokedCertificates.take(10).forEach { cert ->
@@ -182,9 +167,7 @@ fun InspectCrlDialog(
                         }
                     }
                 }
-
                 Spacer(Modifier.height(24.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -197,7 +180,6 @@ fun InspectCrlDialog(
         }
     }
 }
-
 @Composable
 private fun DetailRow(
     label: String,

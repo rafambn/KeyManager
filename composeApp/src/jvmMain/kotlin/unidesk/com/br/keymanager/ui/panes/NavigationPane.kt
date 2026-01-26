@@ -55,7 +55,7 @@ fun NavigationPane(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            // App Logo and Name
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -76,7 +76,7 @@ fun NavigationPane(
 
             Spacer(Modifier.height(24.dp))
 
-            // Primary Actions
+
             Button(
                 onClick = onCreateKeystore,
                 modifier = Modifier.fillMaxWidth()
@@ -124,7 +124,7 @@ fun NavigationPane(
             HorizontalDivider()
             Spacer(Modifier.height(16.dp))
 
-            // Settings
+
             TextButton(
                 onClick = onSettings,
                 modifier = Modifier.fillMaxWidth()
@@ -139,7 +139,7 @@ fun NavigationPane(
             }
         }
 
-        // Version at bottom
+
         Text(
             text = "v$appVersion",
             style = MaterialTheme.typography.bodySmall,
