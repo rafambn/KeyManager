@@ -3,7 +3,7 @@ package unidesk.com.br.keymanager.ui.locale
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import java.util.Locale
+import java.util.*
 
 object LocalAppLocale {
     private var defaultLocale: Locale? = null

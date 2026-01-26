@@ -2,25 +2,15 @@ package unidesk.com.br.keymanager.core.repository
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.PreferencesSettings
-import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.getBooleanFlow
 import com.russhwolf.settings.coroutines.getIntFlow
 import com.russhwolf.settings.coroutines.getStringFlow
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import unidesk.com.br.keymanager.core.model.RecentKeystore
-import java.util.Locale
 import java.util.prefs.Preferences
 
 @OptIn(ExperimentalSettingsApi::class)

@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import unidesk.com.br.keymanager.ui.locale.LocalAppLocale
-import java.util.Locale
+import java.util.*
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
