@@ -3,7 +3,6 @@ package unidesk.com.br.keymanager.ui.screens.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.*
 import androidx.navigation3.scene.DialogSceneStrategy
@@ -62,48 +61,9 @@ fun NavigationRoot(
         ),
         entryProvider = entryProvider {
             entry<Route.Main> {
-                val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
-                resultStore.setResult("app_view_model", appViewModel)
-
                 MainScreen(
-                    viewModel = appViewModel,
                     resultStore = resultStore,
-                    onCreateKeystore = { backStack.add(Route.CreateKeystore) },
-                    onOpenKeystore = { file -> appViewModel.openKeystore(file) },
-                    onBulkMove = {
-                        val aliases = appViewModel.getKeysForSelectedKeystore().map { it.alias }
-                        if (aliases.isNotEmpty()) {
-                            backStack.add(Route.BulkMoveSelect(aliases))
-                        }
-                    },
-                    onSettings = { backStack.add(Route.Settings) },
-                    onUnlockKeystore = { sessionId -> backStack.add(Route.UnlockKeystore(sessionId)) },
-                    onCreateKey = { sessionId -> backStack.add(Route.CreateKey(sessionId)) },
-                    onChangeKeystorePassword = { sessionId -> backStack.add(Route.ChangeKeystorePassword(sessionId)) },
-                    onViewKeyDetails = { alias ->
-                        val keys = appViewModel.getKeysForSelectedKeystore()
-                        val keyInfo = keys.find { it.alias == alias }
-                        if (keyInfo != null) {
-                            resultStore.setResult("key_details_data", keyInfo)
-                            backStack.add(Route.KeyDetails(alias))
-                        }
-                    },
-                    onExportKey = { alias -> backStack.add(Route.ExportCert(alias)) },
-                    onCopyFingerprint = { alias ->
-                        val keys = appViewModel.getKeysForSelectedKeystore()
-                        val keyInfo = keys.find { it.alias == alias }
-                        keyInfo?.fingerprint?.let { fingerprint ->
-                            copyToClipboard(fingerprint)
-                        }
-                    },
-                    onRenameKey = { alias -> backStack.add(Route.Rename(alias)) },
-                    onMoveKey = { alias ->
-                        val file = selectDestinationFile("Select Destination Keystore")
-                        if (file != null) {
-                            backStack.add(Route.MovePassword(alias, file.absolutePath))
-                        }
-                    },
-                    onDeleteKey = { alias -> backStack.add(Route.DeleteConfirmation(alias)) }
+                    onNavigate = { route -> backStack.add(route) }
                 )
             }
 
@@ -339,10 +299,4 @@ private fun NavBackStack<NavKey>.pop() {
     if (this.size > 1) {
         this.removeAt(this.lastIndex)
     }
-}
-
-private fun copyToClipboard(text: String) {
-    val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
-    val selection = java.awt.datatransfer.StringSelection(text)
-    clipboard.setContents(selection, selection)
 }

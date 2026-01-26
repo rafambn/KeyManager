@@ -6,14 +6,17 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import unidesk.com.br.keymanager.keytool.enums.EntryType
 import unidesk.com.br.keymanager.keytool.model.KeyInfo
 import unidesk.com.br.keymanager.ui.layout.ThreePaneLayout
 import unidesk.com.br.keymanager.ui.panes.KeysPane
 import unidesk.com.br.keymanager.ui.panes.KeystoresPane
 import unidesk.com.br.keymanager.ui.panes.NavigationPane
+import unidesk.com.br.keymanager.ui.screens.keystore.selectDestinationFile
 import unidesk.com.br.keymanager.ui.screens.navigation.DialogResult
 import unidesk.com.br.keymanager.ui.screens.navigation.ResultStore
+import unidesk.com.br.keymanager.ui.screens.navigation.Route
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
 import unidesk.com.br.keymanager.ui.viewmodel.AppEvent
 import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
@@ -23,23 +26,12 @@ import java.io.File
 
 @Composable
 fun MainScreen(
-    viewModel: AppViewModel,
     resultStore: ResultStore,
-    onCreateKeystore: () -> Unit,
-    onOpenKeystore: (File) -> Unit,
-    onBulkMove: () -> Unit,
-    onSettings: () -> Unit,
-    onUnlockKeystore: (String) -> Unit,
-    onCreateKey: (String) -> Unit,
-    onChangeKeystorePassword: (String) -> Unit,
-    onViewKeyDetails: (String) -> Unit,
-    onExportKey: (String) -> Unit,
-    onCopyFingerprint: (String) -> Unit,
-    onRenameKey: (String) -> Unit,
-    onMoveKey: (String) -> Unit,
-    onDeleteKey: (String) -> Unit,
+    onNavigate: (Route) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
+    resultStore.setResult("app_view_model", viewModel)
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -185,15 +177,20 @@ fun MainScreen(
         ThreePaneLayout(
             leftPane = {
                 NavigationPane(
-                    onCreateKeystore = onCreateKeystore,
+                    onCreateKeystore = { onNavigate(Route.CreateKeystore) },
                     onOpenKeystore = {
                         val file = selectFile("Select Keystore")
                         if (file != null) {
-                            onOpenKeystore(file)
+                            viewModel.openKeystore(file)
                         }
                     },
-                    onBulkMove = onBulkMove,
-                    onSettings = onSettings
+                    onBulkMove = {
+                        val aliases = viewModel.getKeysForSelectedKeystore().map { it.alias }
+                        if (aliases.isNotEmpty()) {
+                            onNavigate(Route.BulkMoveSelect(aliases))
+                        }
+                    },
+                    onSettings = { onNavigate(Route.Settings) }
                 )
             },
             middlePane = {
@@ -208,11 +205,11 @@ fun MainScreen(
                     onOpenRecent = viewModel::openRecentKeystore,
                     onRemoveRecent = viewModel::removeFromRecent,
                     onSelectKeystore = viewModel::selectKeystore,
-                    onUnlockKeystore = onUnlockKeystore,
+                    onUnlockKeystore = { sessionId: String -> onNavigate(Route.UnlockKeystore(sessionId)) },
                     onLockKeystore = viewModel::lockKeystore,
                     onCloseKeystore = viewModel::closeKeystore,
-                    onCreateKey = onCreateKey,
-                    onChangePassword = onChangeKeystorePassword
+                    onCreateKey = { sessionId: String -> onNavigate(Route.CreateKey(sessionId)) },
+                    onChangePassword = { sessionId: String -> onNavigate(Route.ChangeKeystorePassword(sessionId)) }
                 )
             },
             rightPane = {
@@ -228,12 +225,30 @@ fun MainScreen(
                         state.selectedKeystoreId?.let { viewModel.refreshKeystore(it) }
                     },
                     onSelectKey = viewModel::selectKey,
-                    onViewDetails = onViewKeyDetails,
-                    onExport = onExportKey,
-                    onCopyFingerprint = onCopyFingerprint,
-                    onRename = onRenameKey,
-                    onMove = onMoveKey,
-                    onDelete = onDeleteKey
+                    onViewDetails = { alias: String ->
+                        val keys = viewModel.getKeysForSelectedKeystore()
+                        val keyInfo = keys.find { it.alias == alias }
+                        if (keyInfo != null) {
+                            resultStore.setResult("key_details_data", keyInfo)
+                            onNavigate(Route.KeyDetails(alias))
+                        }
+                    },
+                    onExport = { alias: String -> onNavigate(Route.ExportCert(alias)) },
+                    onCopyFingerprint = { alias: String ->
+                        val keys = viewModel.getKeysForSelectedKeystore()
+                        val keyInfo = keys.find { it.alias == alias }
+                        if (keyInfo != null && keyInfo.fingerprint != null) {
+                            copyToClipboard(keyInfo.fingerprint)
+                        }
+                    },
+                    onRename = { alias: String -> onNavigate(Route.Rename(alias)) },
+                    onMove = { alias: String ->
+                        val file = selectDestinationFile("Select Destination Keystore")
+                        if (file != null) {
+                            onNavigate(Route.MovePassword(alias, file.absolutePath))
+                        }
+                    },
+                    onDelete = { alias: String -> onNavigate(Route.DeleteConfirmation(alias)) }
                 )
             }
         )
@@ -250,4 +265,10 @@ fun selectFile(title: String, mode: Int = FileDialog.LOAD): File? {
 
 fun selectSaveFile(title: String): File? {
     return selectFile(title, FileDialog.SAVE)
+}
+
+private fun copyToClipboard(text: String) {
+    val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+    val selection = java.awt.datatransfer.StringSelection(text)
+    clipboard.setContents(selection, selection)
 }
