@@ -131,7 +131,7 @@ private fun parseDateFlexible(dateString: String): LocalDate {
     }
 
     try {
-        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale("pt", "BR"))
+        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale.Builder().setLanguage("pt").setRegion("BR").build())
         val dateTime = ZonedDateTime.parse(trimmed, formatter)
         return dateTime.toLocalDate()
     } catch (e: Exception) {

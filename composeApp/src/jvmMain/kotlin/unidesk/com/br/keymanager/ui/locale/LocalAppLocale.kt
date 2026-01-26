@@ -23,9 +23,9 @@ object LocalAppLocale {
             value == null -> defaultLocale!!
             value.contains("-") -> {
                 val (lang, country) = value.split("-")
-                Locale(lang, country)
+                Locale.Builder().setLanguage(lang).setRegion(country).build()
             }
-            else -> Locale(value)
+            else -> Locale.Builder().setLanguage(value).build()
         }
         Locale.setDefault(newLocale)
         return LocalLocale provides newLocale.toString()
