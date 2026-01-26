@@ -2,31 +2,32 @@ package unidesk.com.br.keymanager.ui.locale
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidedValue
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import java.util.Locale
 
 object LocalAppLocale {
     private var defaultLocale: Locale? = null
+    private val LocalLocale = staticCompositionLocalOf { Locale.getDefault().toString() }
 
     val current: String
         @Composable
-        get() = Locale.getDefault().language
+        get() = LocalLocale.current
 
     @Composable
-    infix fun provides(value: String?): ProvidedValue<*> {
+    infix fun provides(value: String?): ProvidedValue<String> {
+        if (defaultLocale == null) {
+            defaultLocale = Locale.getDefault()
+        }
+
         val newLocale = when {
-            value == null -> Locale.getDefault()
+            value == null -> defaultLocale!!
             value.contains("-") -> {
                 val (lang, country) = value.split("-")
                 Locale(lang, country)
             }
-
             else -> Locale(value)
         }
         Locale.setDefault(newLocale)
-        System.setProperty("user.language", newLocale.language)
-        System.setProperty("user.country", newLocale.country)
-
-        return compositionLocalOf { "en" } provides newLocale.language
+        return LocalLocale provides newLocale.toString()
     }
 }
