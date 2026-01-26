@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core.repository
+package unidesk.com.br.keymanager.repo
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.PreferencesSettings
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import unidesk.com.br.keymanager.core.model.RecentKeystore
+import unidesk.com.br.keymanager.keytool.model.RecentKeystore
 import java.util.prefs.Preferences
 
 @OptIn(ExperimentalSettingsApi::class)

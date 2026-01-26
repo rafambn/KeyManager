@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core.domain
+package unidesk.com.br.keymanager.keytool.enums
 
 /**
  * Type-safe enumeration of elliptic curves supported by keytool.

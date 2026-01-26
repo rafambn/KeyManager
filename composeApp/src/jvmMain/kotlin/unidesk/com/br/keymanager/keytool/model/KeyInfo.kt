@@ -1,6 +1,6 @@
-package unidesk.com.br.keymanager.core.model
+package unidesk.com.br.keymanager.keytool.model
 
-import unidesk.com.br.keymanager.core.domain.EntryType
+import unidesk.com.br.keymanager.keytool.enums.EntryType
 
 data class KeyInfo(
     val alias: String,

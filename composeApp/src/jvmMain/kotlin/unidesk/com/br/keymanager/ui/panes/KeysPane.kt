@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import unidesk.com.br.keymanager.core.model.KeyInfo
-import unidesk.com.br.keymanager.core.model.KeystoreSession
+import unidesk.com.br.keymanager.keytool.model.KeyInfo
+import unidesk.com.br.keymanager.keytool.model.KeystoreSession
 import unidesk.com.br.keymanager.ui.components.cards.KeyCard
 import unidesk.com.br.keymanager.ui.components.common.EmptyState
 import unidesk.com.br.keymanager.ui.components.common.SearchBar

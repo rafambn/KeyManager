@@ -1,7 +1,7 @@
 package unidesk.com.br.keymanager.ui.state
 
-import unidesk.com.br.keymanager.core.model.KeystoreSession
-import unidesk.com.br.keymanager.core.model.RecentKeystore
+import unidesk.com.br.keymanager.keytool.model.KeystoreSession
+import unidesk.com.br.keymanager.keytool.model.RecentKeystore
 
 data class AppState(
     val keystoreSessions: Map<String, KeystoreSession> = emptyMap(),

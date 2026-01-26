@@ -1,13 +1,12 @@
-package unidesk.com.br.keymanager.core.api
+package unidesk.com.br.keymanager.keytool
 
-import unidesk.com.br.keymanager.core.KeytoolResult
-import unidesk.com.br.keymanager.core.domain.ECCurve
-import unidesk.com.br.keymanager.core.domain.KeyAlgorithm
-import unidesk.com.br.keymanager.core.domain.SignatureAlgorithm
-import unidesk.com.br.keymanager.core.model.CertRequestInfo
-import unidesk.com.br.keymanager.core.model.CertificateInfo
-import unidesk.com.br.keymanager.core.model.CrlInfo
-import unidesk.com.br.keymanager.core.model.KeystoreInfo
+import unidesk.com.br.keymanager.keytool.enums.ECCurve
+import unidesk.com.br.keymanager.keytool.enums.KeyAlgorithm
+import unidesk.com.br.keymanager.keytool.enums.SignatureAlgorithm
+import unidesk.com.br.keymanager.keytool.model.CertRequestInfo
+import unidesk.com.br.keymanager.keytool.model.CertificateInfo
+import unidesk.com.br.keymanager.keytool.model.CrlInfo
+import unidesk.com.br.keymanager.keytool.model.KeystoreInfo
 import java.io.File
 
 object KeyToolAPI {

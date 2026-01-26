@@ -4,10 +4,13 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
-import unidesk.com.br.keymanager.core.api.KeyToolAPI
-import unidesk.com.br.keymanager.core.api.KeyToolExecutor
-import unidesk.com.br.keymanager.core.model.*
-import unidesk.com.br.keymanager.core.domain.*
+import unidesk.com.br.keymanager.keytool.KeyToolAPI
+import unidesk.com.br.keymanager.keytool.KeyToolExecutor
+import unidesk.com.br.keymanager.keytool.KeytoolResult
+import unidesk.com.br.keymanager.keytool.enums.ECCurve
+import unidesk.com.br.keymanager.keytool.enums.EntryType
+import unidesk.com.br.keymanager.keytool.enums.KeyAlgorithm
+import unidesk.com.br.keymanager.keytool.enums.SignatureAlgorithm
 
 class KeyToolAPITest {
 

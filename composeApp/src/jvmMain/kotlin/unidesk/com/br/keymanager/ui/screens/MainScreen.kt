@@ -6,8 +6,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import unidesk.com.br.keymanager.core.domain.EntryType
-import unidesk.com.br.keymanager.core.model.KeyInfo
+import unidesk.com.br.keymanager.keytool.enums.EntryType
+import unidesk.com.br.keymanager.keytool.model.KeyInfo
 import unidesk.com.br.keymanager.ui.layout.ThreePaneLayout
 import unidesk.com.br.keymanager.ui.panes.KeysPane
 import unidesk.com.br.keymanager.ui.panes.KeystoresPane

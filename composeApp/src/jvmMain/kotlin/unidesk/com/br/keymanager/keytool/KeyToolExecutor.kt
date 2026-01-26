@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core.api
+package unidesk.com.br.keymanager.keytool
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

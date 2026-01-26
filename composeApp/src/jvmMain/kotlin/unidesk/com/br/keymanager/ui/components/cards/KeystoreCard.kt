@@ -12,7 +12,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import unidesk.com.br.keymanager.core.model.KeystoreSession
+import unidesk.com.br.keymanager.keytool.model.KeystoreSession
 import unidesk.com.br.keymanager.ui.components.common.LockIndicator
 
 @Composable

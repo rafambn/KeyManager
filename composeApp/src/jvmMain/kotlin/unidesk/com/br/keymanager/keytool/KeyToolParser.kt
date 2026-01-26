@@ -1,7 +1,11 @@
-package unidesk.com.br.keymanager.core.api
+package unidesk.com.br.keymanager.keytool
 
-import unidesk.com.br.keymanager.core.domain.EntryType
-import unidesk.com.br.keymanager.core.model.*
+import unidesk.com.br.keymanager.keytool.enums.EntryType
+import unidesk.com.br.keymanager.keytool.model.CertRequestInfo
+import unidesk.com.br.keymanager.keytool.model.CertificateInfo
+import unidesk.com.br.keymanager.keytool.model.CrlInfo
+import unidesk.com.br.keymanager.keytool.model.KeystoreEntry
+import unidesk.com.br.keymanager.keytool.model.KeystoreInfo
 
 internal object KeyToolParser {
     internal fun parseListVerboseOutput(output: String): KeystoreInfo {

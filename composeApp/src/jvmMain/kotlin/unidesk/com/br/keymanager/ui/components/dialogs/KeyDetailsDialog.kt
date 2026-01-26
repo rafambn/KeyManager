@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import unidesk.com.br.keymanager.core.domain.EntryType
-import unidesk.com.br.keymanager.core.model.KeyInfo
+import unidesk.com.br.keymanager.keytool.enums.EntryType
+import unidesk.com.br.keymanager.keytool.model.KeyInfo
 import unidesk.com.br.keymanager.ui.components.common.ValidityBadge
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection

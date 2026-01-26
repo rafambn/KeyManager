@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core
+package unidesk.com.br.keymanager.keytool
 
 sealed class KeytoolResult<out T> {
     data class Success<T>(val data: T) : KeytoolResult<T>()

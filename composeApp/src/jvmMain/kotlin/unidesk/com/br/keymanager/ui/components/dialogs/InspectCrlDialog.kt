@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
-import unidesk.com.br.keymanager.core.KeytoolResult
-import unidesk.com.br.keymanager.core.api.KeyToolAPI
-import unidesk.com.br.keymanager.core.model.CrlInfo
+import unidesk.com.br.keymanager.keytool.KeytoolResult
+import unidesk.com.br.keymanager.keytool.KeyToolAPI
+import unidesk.com.br.keymanager.keytool.model.CrlInfo
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File

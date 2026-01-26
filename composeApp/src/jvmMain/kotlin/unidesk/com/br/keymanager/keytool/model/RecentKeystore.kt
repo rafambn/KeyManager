@@ -1,4 +1,4 @@
-package unidesk.com.br.keymanager.core.model
+package unidesk.com.br.keymanager.keytool.model
 
 import kotlinx.serialization.Serializable
 
