@@ -1,12 +1,7 @@
 package unidesk.com.br.keymanager.ui.components.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -20,16 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import keymanager.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import org.jetbrains.compose.resources.stringResource
-import keymanager.composeapp.generated.resources.Res
-import keymanager.composeapp.generated.resources.validity_valid
-import keymanager.composeapp.generated.resources.validity_expiring
-import keymanager.composeapp.generated.resources.validity_expired
-import keymanager.composeapp.generated.resources.validity_unknown
 
 enum class ValidityStatus {
     VALID,
@@ -57,18 +48,21 @@ fun ValidityBadge(
             Icons.Default.Check,
             validLabel
         )
+
         ValidityStatus.EXPIRING_SOON -> Quadruple(
             Color(0xFFFF9800).copy(alpha = 0.15f),
             Color(0xFFE65100),
             Icons.Default.Warning,
             expiringLabel
         )
+
         ValidityStatus.EXPIRED -> Quadruple(
             Color(0xFFF44336).copy(alpha = 0.15f),
             Color(0xFFC62828),
             Icons.Default.Close,
             expiredLabel
         )
+
         ValidityStatus.UNKNOWN -> Quadruple(
             MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.onSurfaceVariant,
@@ -128,7 +122,6 @@ private fun calculateValidityStatus(validUntil: String?): ValidityStatus {
 private fun parseDateFlexible(dateString: String): LocalDate {
     val trimmed = dateString.trim()
 
-
     try {
         val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale.ENGLISH)
         val dateTime = ZonedDateTime.parse(trimmed, formatter)
@@ -137,7 +130,6 @@ private fun parseDateFlexible(dateString: String): LocalDate {
 
     }
 
-
     try {
         val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", java.util.Locale("pt", "BR"))
         val dateTime = ZonedDateTime.parse(trimmed, formatter)
@@ -145,7 +137,6 @@ private fun parseDateFlexible(dateString: String): LocalDate {
     } catch (e: Exception) {
 
     }
-
 
     try {
         val parts = trimmed.split(" ")
@@ -173,7 +164,6 @@ private fun parseDateFlexible(dateString: String): LocalDate {
     } catch (e: Exception) {
 
     }
-
 
     try {
         val isoMatch = Regex("""(\d{4})-(\d{2})-(\d{2})""").find(trimmed)

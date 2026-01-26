@@ -64,7 +64,7 @@ enum class KeystoreFormat(
     PKCS11(
         cliName = "pkcs11",
         displayName = "PKCS11",
-        fileExtension = null,  
+        fileExtension = null,
         isBinary = false
     ),
 

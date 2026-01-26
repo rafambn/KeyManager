@@ -1,7 +1,7 @@
 package unidesk.com.br.keymanager.core.model
 
 import java.io.File
-import java.util.UUID
+import java.util.*
 
 data class KeystoreSession(
     val id: String = UUID.randomUUID().toString(),

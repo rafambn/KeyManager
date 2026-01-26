@@ -1,14 +1,10 @@
 package unidesk.com.br.keymanager.ui.screens
-import androidx.compose.foundation.layout.Box
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.model.KeyInfo
@@ -22,6 +18,7 @@ import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
+
 @Composable
 fun MainScreen(
     viewModel: AppViewModel,
@@ -42,7 +39,7 @@ fun MainScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     LaunchedEffect(viewModel) {
         viewModel.eventChannel.collect { event ->
             when (event) {
@@ -53,11 +50,12 @@ fun MainScreen(
                         withDismissAction = true
                     )
                 }
+
                 else -> {}
             }
         }
     }
-    
+
     val allKeys = state.selectedSession?.keystoreInfo?.entries?.map { entry ->
         KeyInfo(
             alias = entry.alias,
@@ -149,6 +147,7 @@ fun MainScreen(
         )
     }
 }
+
 fun selectFile(title: String, mode: Int = FileDialog.LOAD): File? {
     val dialog = FileDialog(null as Frame?, title, mode)
     dialog.isVisible = true
@@ -156,6 +155,7 @@ fun selectFile(title: String, mode: Int = FileDialog.LOAD): File? {
         File(dialog.directory, dialog.file)
     } else null
 }
+
 fun selectSaveFile(title: String): File? {
     return selectFile(title, FileDialog.SAVE)
 }

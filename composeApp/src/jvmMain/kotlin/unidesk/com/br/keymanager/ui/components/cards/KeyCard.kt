@@ -1,49 +1,18 @@
 package unidesk.com.br.keymanager.ui.components.cards
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.SaveAlt
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import keymanager.composeapp.generated.resources.Res
-import keymanager.composeapp.generated.resources.action_delete
-import keymanager.composeapp.generated.resources.action_export_cert
-import keymanager.composeapp.generated.resources.action_move
-import keymanager.composeapp.generated.resources.action_rename
-import keymanager.composeapp.generated.resources.action_view_details
-import keymanager.composeapp.generated.resources.entry_type_private_key
-import keymanager.composeapp.generated.resources.entry_type_secret_key
-import keymanager.composeapp.generated.resources.entry_type_trusted_cert
-import keymanager.composeapp.generated.resources.entry_type_unknown
-import keymanager.composeapp.generated.resources.valid_until
 import unidesk.com.br.keymanager.core.domain.EntryType
 import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.ui.components.common.ValidityBadge
@@ -72,7 +41,8 @@ fun KeyCard(
         EntryType.PRIVATE_KEY -> stringResource(Res.string.entry_type_private_key)
         EntryType.TRUSTED_CERT -> stringResource(Res.string.entry_type_trusted_cert)
         EntryType.SECRET_KEY -> stringResource(Res.string.entry_type_secret_key)
-        EntryType.UNKNOWN -> { stringResource(Res.string.entry_type_unknown)
+        EntryType.UNKNOWN -> {
+            stringResource(Res.string.entry_type_unknown)
         }
     }
 

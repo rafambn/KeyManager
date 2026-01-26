@@ -5,11 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.*
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
@@ -251,8 +247,10 @@ fun NavigationRoot(
                 ChangePasswordScreen(
                     title = "Change Keystore Password",
                     onConfirm = { oldPassword, newPassword ->
-                        resultStore.setResult("change_password_result",
-                            DialogResult.ChangePassword(key.sessionId, oldPassword, newPassword))
+                        resultStore.setResult(
+                            "change_password_result",
+                            DialogResult.ChangePassword(key.sessionId, oldPassword, newPassword)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }

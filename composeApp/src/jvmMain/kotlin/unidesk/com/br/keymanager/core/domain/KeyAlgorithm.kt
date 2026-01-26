@@ -22,10 +22,10 @@ enum class KeyAlgorithm(
         displayName = "RSA",
         cliName = "rsa",
         supportedKeySizes = 512..16384,
-        defaultKeySize = 3072,  
+        defaultKeySize = 3072,
         supportsSignature = true,
         supportsKeyAgreement = false,
-        deprecated = false  
+        deprecated = false
     ),
     RSA_PSS(
         displayName = "RSA-PSS",
@@ -43,14 +43,14 @@ enum class KeyAlgorithm(
         defaultKeySize = 2048,
         supportsSignature = true,
         supportsKeyAgreement = false,
-        deprecated = true  
+        deprecated = true
     ),
 
     EC(
         displayName = "EC",
         cliName = "ec",
-        supportedKeySizes = 160..571,  
-        defaultKeySize = 384,  
+        supportedKeySizes = 160..571,
+        defaultKeySize = 384,
         supportsSignature = true,
         supportsKeyAgreement = false
     ),
@@ -77,7 +77,7 @@ enum class KeyAlgorithm(
         displayName = "DH",
         cliName = "dh",
         supportedKeySizes = 512..8192,
-        defaultKeySize = 3072,  
+        defaultKeySize = 3072,
         supportsSignature = false,
         supportsKeyAgreement = true
     ),
@@ -106,7 +106,7 @@ enum class KeyAlgorithm(
     ML_DSA_44(
         displayName = "ML-DSA (44)",
         cliName = "ML-DSA",
-        supportedKeySizes = -1..-1,  
+        supportedKeySizes = -1..-1,
         defaultKeySize = -1,
         supportsSignature = true,
         supportsKeyAgreement = false,
@@ -187,7 +187,7 @@ enum class KeyAlgorithm(
         defaultKeySize = 168,
         supportsSignature = false,
         supportsKeyAgreement = false,
-        deprecated = true  
+        deprecated = true
     );
 
     companion object {
@@ -226,7 +226,7 @@ enum class KeyAlgorithm(
      * Check if a given key size is valid for this algorithm
      */
     fun isValidKeySize(size: Int): Boolean {
-        
+
         if (defaultKeySize == -1) return size == -1
         return size in supportedKeySizes
     }

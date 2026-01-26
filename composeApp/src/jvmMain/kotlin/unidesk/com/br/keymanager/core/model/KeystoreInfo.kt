@@ -1,4 +1,5 @@
 package unidesk.com.br.keymanager.core.model
+
 data class KeystoreInfo(
     val type: String,
     val provider: String,

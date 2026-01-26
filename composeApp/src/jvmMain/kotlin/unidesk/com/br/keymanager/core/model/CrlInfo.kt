@@ -1,4 +1,5 @@
 package unidesk.com.br.keymanager.core.model
+
 data class CrlInfo(
     val issuer: String,
     val thisUpdate: String,

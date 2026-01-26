@@ -1,8 +1,15 @@
 package unidesk.com.br.keymanager.core.api
-import java.io.File
-import unidesk.com.br.keymanager.core.model.*
-import unidesk.com.br.keymanager.core.domain.*
+
 import unidesk.com.br.keymanager.core.KeytoolResult
+import unidesk.com.br.keymanager.core.domain.ECCurve
+import unidesk.com.br.keymanager.core.domain.KeyAlgorithm
+import unidesk.com.br.keymanager.core.domain.SignatureAlgorithm
+import unidesk.com.br.keymanager.core.model.CertRequestInfo
+import unidesk.com.br.keymanager.core.model.CertificateInfo
+import unidesk.com.br.keymanager.core.model.CrlInfo
+import unidesk.com.br.keymanager.core.model.KeystoreInfo
+import java.io.File
+
 object KeyToolAPI {
 
     // ===== 1. LIST → KeystoreInfo =====
@@ -39,16 +46,16 @@ object KeyToolAPI {
         signatureAlgorithm: SignatureAlgorithm? = null,
         ecCurve: ECCurve? = null
     ): KeytoolResult<Unit> {
-        
+
         val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-        
+
         if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
             return KeytoolResult.Error(
                 "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
                 -1
             )
         }
-        
+
         val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, finalKeySize)
         val args = mutableListOf(
             "-genkeypair",
@@ -79,16 +86,16 @@ object KeyToolAPI {
         keyAlgorithm: KeyAlgorithm,
         keySize: Int? = null
     ): KeytoolResult<Unit> {
-        
+
         val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-        
+
         if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
             return KeytoolResult.Error(
                 "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
                 -1
             )
         }
-        
+
         if (keyAlgorithm !in listOf(KeyAlgorithm.AES, KeyAlgorithm.TRIPLE_DES)) {
             return KeytoolResult.Error(
                 "${keyAlgorithm.displayName} is not a symmetric key algorithm (valid: AES, TripleDES)",

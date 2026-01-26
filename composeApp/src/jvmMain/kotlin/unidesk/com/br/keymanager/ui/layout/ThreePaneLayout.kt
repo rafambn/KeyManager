@@ -1,15 +1,13 @@
 package unidesk.com.br.keymanager.ui.layout
+
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+
 @Composable
 fun ThreePaneLayout(
     leftPane: @Composable () -> Unit,
@@ -18,7 +16,7 @@ fun ThreePaneLayout(
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier.fillMaxSize()) {
-        
+
         Box(
             modifier = Modifier
                 .width(240.dp)
@@ -31,7 +29,7 @@ fun ThreePaneLayout(
             modifier = Modifier.fillMaxHeight(),
             color = MaterialTheme.colorScheme.outlineVariant
         )
-        
+
         Box(
             modifier = Modifier
                 .width(320.dp)
@@ -44,7 +42,7 @@ fun ThreePaneLayout(
             modifier = Modifier.fillMaxHeight(),
             color = MaterialTheme.colorScheme.outlineVariant
         )
-        
+
         Box(
             modifier = Modifier
                 .weight(1f)

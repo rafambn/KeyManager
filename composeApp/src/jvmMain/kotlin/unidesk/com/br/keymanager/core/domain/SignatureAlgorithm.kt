@@ -9,8 +9,8 @@ package unidesk.com.br.keymanager.core.domain
 enum class SignatureAlgorithm(
     val cliName: String,
     val displayName: String,
-    val keyAlgorithmFamily: String,  
-    val hashAlgorithm: String,       
+    val keyAlgorithmFamily: String,
+    val hashAlgorithm: String,
     val deprecated: Boolean = false,
     val disabled: Boolean = false
 ) {
@@ -266,33 +266,33 @@ enum class SignatureAlgorithm(
          */
         fun selectDefault(keyAlgorithm: KeyAlgorithm, keySize: Int): SignatureAlgorithm {
             return when (keyAlgorithm) {
-                
+
                 KeyAlgorithm.RSA -> when {
-                    keySize < 3072 -> SHA256_WITH_RSA       
-                    keySize < 7680 -> SHA384_WITH_RSA       
-                    else -> SHA512_WITH_RSA                 
+                    keySize < 3072 -> SHA256_WITH_RSA
+                    keySize < 7680 -> SHA384_WITH_RSA
+                    else -> SHA512_WITH_RSA
                 }
-                
+
                 KeyAlgorithm.RSA_PSS -> when {
                     keySize < 3072 -> SHA256_WITH_RSA_PSS
                     keySize < 7680 -> SHA384_WITH_RSA_PSS
                     else -> SHA512_WITH_RSA_PSS
                 }
-                
+
                 KeyAlgorithm.EC -> when {
-                    keySize < 384 -> SHA256_WITH_ECDSA      
-                    keySize < 512 -> SHA384_WITH_ECDSA      
-                    else -> SHA512_WITH_ECDSA               
+                    keySize < 384 -> SHA256_WITH_ECDSA
+                    keySize < 512 -> SHA384_WITH_ECDSA
+                    else -> SHA512_WITH_ECDSA
                 }
-                
+
                 KeyAlgorithm.DSA -> SHA256_WITH_DSA
-                
+
                 KeyAlgorithm.ED25519 -> ED25519
                 KeyAlgorithm.ED448 -> ED448
-                
+
                 KeyAlgorithm.ML_DSA_44, KeyAlgorithm.ML_DSA_65, KeyAlgorithm.ML_DSA_87 -> ML_DSA
-                
-                else -> SHA256_WITH_RSA  
+
+                else -> SHA256_WITH_RSA
             }
         }
 

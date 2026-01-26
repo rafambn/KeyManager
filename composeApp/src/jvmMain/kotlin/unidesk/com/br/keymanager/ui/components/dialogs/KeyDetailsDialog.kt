@@ -1,24 +1,11 @@
 package unidesk.com.br.keymanager.ui.components.dialogs
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +16,7 @@ import unidesk.com.br.keymanager.core.model.KeyInfo
 import unidesk.com.br.keymanager.ui.components.common.ValidityBadge
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+
 @Composable
 fun KeyDetailsDialog(
     keyInfo: KeyInfo,
@@ -50,9 +38,9 @@ fun KeyDetailsDialog(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Spacer(Modifier.height(24.dp))
-                
+
                 DetailRow(label = "Alias", value = keyInfo.alias)
-                
+
                 val typeLabel = when (keyInfo.entryType) {
                     EntryType.PRIVATE_KEY -> "Private Key Entry"
                     EntryType.TRUSTED_CERT -> "Trusted Certificate Entry"
@@ -60,27 +48,27 @@ fun KeyDetailsDialog(
                     EntryType.UNKNOWN -> "Unknown Entry Type"
                 }
                 DetailRow(label = "Entry Type", value = typeLabel)
-                
+
                 DetailRow(label = "Algorithm", value = keyInfo.algorithm)
-                
+
                 keyInfo.certificateChainLength?.let {
                     DetailRow(label = "Certificate Chain", value = "$it certificate(s)")
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                
+
                 keyInfo.owner?.let {
                     DetailRow(label = "Owner", value = it)
                 }
-                
+
                 keyInfo.issuer?.let {
                     DetailRow(label = "Issuer", value = it)
                 }
-                
+
                 keyInfo.serialNumber?.let {
                     DetailRow(label = "Serial Number", value = it)
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -100,11 +88,11 @@ fun KeyDetailsDialog(
                 keyInfo.validUntil?.let {
                     DetailRow(label = "Valid Until", value = it)
                 }
-                
+
                 keyInfo.creationDate?.let {
                     DetailRow(label = "Created", value = it)
                 }
-                
+
                 keyInfo.fingerprint?.let { fingerprint ->
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                     Row(
@@ -151,6 +139,7 @@ fun KeyDetailsDialog(
         }
     }
 }
+
 @Composable
 private fun DetailRow(
     label: String,

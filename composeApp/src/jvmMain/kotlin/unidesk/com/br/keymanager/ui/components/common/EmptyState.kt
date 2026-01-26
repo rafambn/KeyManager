@@ -1,16 +1,6 @@
 package unidesk.com.br.keymanager.ui.components.common
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -72,35 +62,3 @@ fun EmptyState(
         }
     }
 }
-
-object EmptyStateDefaults {
-    val NoKeystores = EmptyStateConfig(
-        icon = Icons.Default.Folder,
-        title = "No keystores open",
-        description = "Open or create a keystore to get started"
-    )
-
-    val NoKeys = EmptyStateConfig(
-        icon = Icons.Default.Key,
-        title = "No keys in keystore",
-        description = "Create a new key or import certificates"
-    )
-
-    val KeystoreLocked = EmptyStateConfig(
-        icon = Icons.Default.Lock,
-        title = "Keystore locked",
-        description = "Enter the password to unlock"
-    )
-
-    val NoSelection = EmptyStateConfig(
-        icon = Icons.Default.Folder,
-        title = "No keystore selected",
-        description = "Select a keystore from the list to view its contents"
-    )
-}
-
-data class EmptyStateConfig(
-    val icon: ImageVector,
-    val title: String,
-    val description: String
-)

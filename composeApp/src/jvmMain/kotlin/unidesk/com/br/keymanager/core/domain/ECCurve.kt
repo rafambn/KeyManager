@@ -91,7 +91,7 @@ enum class ECCurve(
             val lowerName = name.lowercase()
             return values().find {
                 it.cliName.lowercase() == lowerName ||
-                it.aliases.any { alias -> alias.lowercase() == lowerName }
+                        it.aliases.any { alias -> alias.lowercase() == lowerName }
             }
         }
 

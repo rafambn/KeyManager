@@ -1,34 +1,15 @@
 package unidesk.com.br.keymanager.ui.screens
 
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import org.jetbrains.compose.resources.stringResource
 import keymanager.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CreateKeyScreen(
@@ -82,21 +63,51 @@ fun CreateKeyScreen(
                 Text(stringResource(Res.string.dn_section_title), style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(8.dp))
                 Row {
-                    TextField(value = cn, onValueChange = { cn = it }, label = { Text(stringResource(Res.string.cn_label)) }, modifier = Modifier.weight(1f))
+                    TextField(
+                        value = cn,
+                        onValueChange = { cn = it },
+                        label = { Text(stringResource(Res.string.cn_label)) },
+                        modifier = Modifier.weight(1f)
+                    )
                     Spacer(Modifier.width(4.dp))
-                    TextField(value = c, onValueChange = { c = it }, label = { Text(stringResource(Res.string.country_label)) }, modifier = Modifier.weight(0.5f))
+                    TextField(
+                        value = c,
+                        onValueChange = { c = it },
+                        label = { Text(stringResource(Res.string.country_label)) },
+                        modifier = Modifier.weight(0.5f)
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 Row {
-                    TextField(value = ou, onValueChange = { ou = it }, label = { Text(stringResource(Res.string.ou_label)) }, modifier = Modifier.weight(1f))
+                    TextField(
+                        value = ou,
+                        onValueChange = { ou = it },
+                        label = { Text(stringResource(Res.string.ou_label)) },
+                        modifier = Modifier.weight(1f)
+                    )
                     Spacer(Modifier.width(4.dp))
-                    TextField(value = o, onValueChange = { o = it }, label = { Text(stringResource(Res.string.org_label)) }, modifier = Modifier.weight(1f))
+                    TextField(
+                        value = o,
+                        onValueChange = { o = it },
+                        label = { Text(stringResource(Res.string.org_label)) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 Row {
-                    TextField(value = l, onValueChange = { l = it }, label = { Text(stringResource(Res.string.locality_label)) }, modifier = Modifier.weight(1f))
+                    TextField(
+                        value = l,
+                        onValueChange = { l = it },
+                        label = { Text(stringResource(Res.string.locality_label)) },
+                        modifier = Modifier.weight(1f)
+                    )
                     Spacer(Modifier.width(4.dp))
-                    TextField(value = st, onValueChange = { st = it }, label = { Text(stringResource(Res.string.state_label)) }, modifier = Modifier.weight(1f))
+                    TextField(
+                        value = st,
+                        onValueChange = { st = it },
+                        label = { Text(stringResource(Res.string.state_label)) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))

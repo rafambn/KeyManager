@@ -6,14 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import unidesk.com.br.keymanager.core.KeytoolResult
 import unidesk.com.br.keymanager.core.api.KeyToolAPI
@@ -97,7 +90,10 @@ class AppViewModel(
 
         _state.update { state ->
             state.copy(
-                keystoreSessions = state.keystoreSessions + (sessionId to session.copy(isLoading = true, errorMessage = null))
+                keystoreSessions = state.keystoreSessions + (sessionId to session.copy(
+                    isLoading = true,
+                    errorMessage = null
+                ))
             )
         }
 
@@ -199,6 +195,7 @@ class AppViewModel(
                     settingsRepository.addRecentKeystore(file.absolutePath, file.name)
                     _eventChannel.trySend(AppEvent.ShowError("Keystore created successfully"))
                 }
+
                 is KeytoolResult.Error -> {
                     _eventChannel.trySend(AppEvent.ShowError("Failed to create keystore: ${result.message}"))
                 }
@@ -396,7 +393,8 @@ class AppViewModel(
                         is KeytoolResult.Success -> {
                             refreshKeystore(session.id)
 
-                            val targetSession = _state.value.keystoreSessions.values.find { it.path == targetFile.absolutePath }
+                            val targetSession =
+                                _state.value.keystoreSessions.values.find { it.path == targetFile.absolutePath }
                             targetSession?.let { refreshKeystore(it.id) }
 
                             if (_state.value.selectedKeyAlias == alias) {
@@ -477,7 +475,7 @@ class AppViewModel(
                 )) {
                     is KeytoolResult.Success -> {
                         when (val deleteResult = KeyToolAPI.delete(session.file, sourcePassword, alias)) {
-                             is KeytoolResult.Success -> { }
+                            is KeytoolResult.Success -> {}
                             is KeytoolResult.Error -> {
                                 errors.add("$alias: Copied but failed to delete from source: ${deleteResult.message}")
                             }
@@ -516,7 +514,6 @@ class AppViewModel(
             )
         }
     }
-
 
 
     fun exportCertificate(alias: String, outputFile: File, asPem: Boolean) {
@@ -618,7 +615,6 @@ class AppViewModel(
     }
 
 
-
     fun setKeystoreSearchQuery(query: String) {
         _state.update { it.copy(keystoreSearchQuery = query) }
     }
@@ -636,7 +632,6 @@ class AppViewModel(
     }
 
 
-
     fun setDarkMode(enabled: Boolean) {
         settingsRepository.setDarkMode(enabled)
     }
@@ -652,7 +647,6 @@ class AppViewModel(
     fun setLanguage(languageCode: String) {
         settingsRepository.setLanguage(languageCode)
     }
-
 
 
     fun clearError() {
