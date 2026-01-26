@@ -54,12 +54,9 @@ class SettingsRepository {
 
         _isDarkMode.value = settings.getBoolean(KEY_DARK_MODE, false)
 
-
         _defaultKeystoreFormat.value = settings.getString(KEY_DEFAULT_FORMAT, "PKCS12")
 
-
         _autoLockTimeoutMinutes.value = settings.getInt(KEY_AUTO_LOCK_TIMEOUT, 0)
-
 
         _selectedLanguage.value = settings.getString(KEY_SELECTED_LANGUAGE, "pt-BR")
     }

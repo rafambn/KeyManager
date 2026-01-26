@@ -9,32 +9,17 @@ import keymanager.composeapp.generated.resources.Res
 import keymanager.composeapp.generated.resources.app_icon
 import org.jetbrains.compose.resources.painterResource
 import java.awt.Dimension
+import java.awt.Window
 
 fun main() = application {
-    val prefs = java.util.prefs.Preferences.userRoot().node("keymanager")
-    val savedLanguage = prefs.get("selected_language", "pt-BR")
-
-    val (lang, country) = if (savedLanguage.contains("-")) {
-        savedLanguage.split("-")
-    } else {
-        listOf(savedLanguage, "")
-    }
-
-    System.setProperty("user.language", lang)
-    if (country.isNotEmpty()) {
-        System.setProperty("user.country", country)
-    }
-
-    val windowState = rememberWindowState(width = 1200.dp, height = 600.dp)
-
     Window(
         onCloseRequest = ::exitApplication,
         title = "Keystore Manager",
         icon = painterResource(Res.drawable.app_icon),
-        state = windowState
+        state = rememberWindowState(width = 1200.dp, height = 600.dp)
     ) {
         LaunchedEffect(Unit) {
-            val window = java.awt.Window.getWindows().lastOrNull()
+            val window = Window.getWindows().lastOrNull()
             window?.minimumSize = Dimension(1200, 600)
         }
 
