@@ -11,6 +11,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import unidesk.com.br.keymanager.keytool.model.KeyInfo
 import unidesk.com.br.keymanager.ui.screens.*
 import unidesk.com.br.keymanager.ui.screens.keystore.selectDestinationFile
 import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
@@ -21,7 +22,6 @@ fun NavigationRoot(
     modifier: Modifier = Modifier
 ) {
     val resultStore = rememberResultStore()
-    val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
 
     val backStack: NavBackStack<NavKey> = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -62,8 +62,12 @@ fun NavigationRoot(
         ),
         entryProvider = entryProvider {
             entry<Route.Main> {
+                val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
+                resultStore.setResult("app_view_model", appViewModel)
+
                 MainScreen(
                     viewModel = appViewModel,
+                    resultStore = resultStore,
                     onCreateKeystore = { backStack.add(Route.CreateKeystore) },
                     onOpenKeystore = { file -> appViewModel.openKeystore(file) },
                     onBulkMove = {
@@ -76,7 +80,14 @@ fun NavigationRoot(
                     onUnlockKeystore = { sessionId -> backStack.add(Route.UnlockKeystore(sessionId)) },
                     onCreateKey = { sessionId -> backStack.add(Route.CreateKey(sessionId)) },
                     onChangeKeystorePassword = { sessionId -> backStack.add(Route.ChangeKeystorePassword(sessionId)) },
-                    onViewKeyDetails = { alias -> backStack.add(Route.KeyDetails(alias)) },
+                    onViewKeyDetails = { alias ->
+                        val keys = appViewModel.getKeysForSelectedKeystore()
+                        val keyInfo = keys.find { it.alias == alias }
+                        if (keyInfo != null) {
+                            resultStore.setResult("key_details_data", keyInfo)
+                            backStack.add(Route.KeyDetails(alias))
+                        }
+                    },
                     onExportKey = { alias -> backStack.add(Route.ExportCert(alias)) },
                     onCopyFingerprint = { alias ->
                         val keys = appViewModel.getKeysForSelectedKeystore()
@@ -102,7 +113,10 @@ fun NavigationRoot(
                 PasswordScreen(
                     title = "Unlock Keystore",
                     onUnlock = { password ->
-                        appViewModel.unlockKeystore(key.sessionId, password)
+                        resultStore.setResult(
+                            "unlock_keystore",
+                            DialogResult.UnlockKeystore(key.sessionId, password)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -114,7 +128,10 @@ fun NavigationRoot(
             ) {
                 CreateKeystoreScreen(
                     onCreateKeystore = { file, password, format ->
-                        appViewModel.createKeystore(file, password, format)
+                        resultStore.setResult(
+                            "create_keystore",
+                            DialogResult.CreateKeystore(file, password, format)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -139,7 +156,10 @@ fun NavigationRoot(
             ) { key ->
                 CreateKeyScreen(
                     onCreateKey = { alias, dn, validity ->
-                        appViewModel.createKey(alias, dn, validity)
+                        resultStore.setResult(
+                            "create_key",
+                            DialogResult.CreateKey(alias, dn, validity)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -152,7 +172,10 @@ fun NavigationRoot(
                 RenameScreen(
                     alias = key.alias,
                     onRenameConfirm = { newAlias ->
-                        appViewModel.renameKey(key.alias, newAlias)
+                        resultStore.setResult(
+                            "rename_key",
+                            DialogResult.Rename(key.alias, newAlias)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -165,7 +188,10 @@ fun NavigationRoot(
                 DeleteConfirmationScreen(
                     alias = key.alias,
                     onDeleteConfirm = {
-                        appViewModel.deleteKey(key.alias)
+                        resultStore.setResult(
+                            "delete_key",
+                            DialogResult.Delete(key.alias)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -190,7 +216,10 @@ fun NavigationRoot(
                     alias = key.alias,
                     fileName = File(key.filePath).name,
                     onMoveConfirm = {
-                        appViewModel.moveKey(key.alias, File(key.filePath), key.password)
+                        resultStore.setResult(
+                            "move_key",
+                            DialogResult.Move(key.alias, File(key.filePath), key.password)
+                        )
                         backStack.pop()
                         backStack.pop()
                     },
@@ -206,7 +235,7 @@ fun NavigationRoot(
                     onAliasesSelected = { selected ->
                         val file = selectDestinationFile("Select Destination Keystore")
                         if (file != null) {
-                            appViewModel.setSelectedBulkAliases(selected)
+                            resultStore.setResult("bulk_move_selected_aliases", selected)
                             backStack.add(Route.BulkMovePassword(selected, file.absolutePath))
                         }
                     },
@@ -232,7 +261,10 @@ fun NavigationRoot(
                     selectedAliasesSize = key.aliases.size,
                     fileName = File(key.filePath).name,
                     onConfirmMove = {
-                        appViewModel.moveSelectedKeys(File(key.filePath), key.password)
+                        resultStore.setResult(
+                            "bulk_move_keys",
+                            DialogResult.BulkMove(key.aliases, File(key.filePath), key.password)
+                        )
                         backStack.pop()
                         backStack.pop()
                         backStack.pop()
@@ -248,7 +280,7 @@ fun NavigationRoot(
                     title = "Change Keystore Password",
                     onConfirm = { oldPassword, newPassword ->
                         resultStore.setResult(
-                            "change_password_result",
+                            "change_keystore_password",
                             DialogResult.ChangePassword(key.sessionId, oldPassword, newPassword)
                         )
                         backStack.pop()
@@ -260,12 +292,14 @@ fun NavigationRoot(
             entry<Route.KeyDetails>(
                 metadata = DialogSceneStrategy.dialog()
             ) { key ->
-                val keys = appViewModel.getKeysForSelectedKeystore()
-                val keyInfo = keys.find { it.alias == key.alias }
+                val keyInfo = resultStore.getResultState<KeyInfo>("key_details_data")
                 if (keyInfo != null) {
                     KeyDetailsScreen(
                         keyInfo = keyInfo,
-                        onNavigateBack = { backStack.pop() }
+                        onNavigateBack = {
+                            resultStore.removeResult<KeyInfo>("key_details_data")
+                            backStack.pop()
+                        }
                     )
                 }
             }
@@ -276,7 +310,10 @@ fun NavigationRoot(
                 ExportCertScreen(
                     alias = key.alias,
                     onExport = { file, asPem ->
-                        appViewModel.exportCertificate(key.alias, file, asPem)
+                        resultStore.setResult(
+                            "export_cert",
+                            DialogResult.ExportCert(key.alias, file, asPem)
+                        )
                         backStack.pop()
                     },
                     onNavigateBack = { backStack.pop() }
@@ -286,10 +323,13 @@ fun NavigationRoot(
             entry<Route.Settings>(
                 metadata = DialogSceneStrategy.dialog()
             ) {
-                SettingsScreen(
-                    viewModel = appViewModel,
-                    onNavigateBack = { backStack.pop() }
-                )
+                val appViewModel = resultStore.getResultState<AppViewModel>("app_view_model")
+                if (appViewModel != null) {
+                    SettingsScreen(
+                        viewModel = appViewModel,
+                        onNavigateBack = { backStack.pop() }
+                    )
+                }
             }
         }
     )

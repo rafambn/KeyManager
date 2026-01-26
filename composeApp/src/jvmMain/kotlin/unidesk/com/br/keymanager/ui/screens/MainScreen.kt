@@ -12,6 +12,8 @@ import unidesk.com.br.keymanager.ui.layout.ThreePaneLayout
 import unidesk.com.br.keymanager.ui.panes.KeysPane
 import unidesk.com.br.keymanager.ui.panes.KeystoresPane
 import unidesk.com.br.keymanager.ui.panes.NavigationPane
+import unidesk.com.br.keymanager.ui.screens.navigation.DialogResult
+import unidesk.com.br.keymanager.ui.screens.navigation.ResultStore
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
 import unidesk.com.br.keymanager.ui.viewmodel.AppEvent
 import unidesk.com.br.keymanager.ui.viewmodel.AppViewModel
@@ -22,6 +24,7 @@ import java.io.File
 @Composable
 fun MainScreen(
     viewModel: AppViewModel,
+    resultStore: ResultStore,
     onCreateKeystore: () -> Unit,
     onOpenKeystore: (File) -> Unit,
     onBulkMove: () -> Unit,
@@ -52,6 +55,95 @@ fun MainScreen(
                 }
 
                 else -> {}
+            }
+        }
+    }
+
+    // Observe dialog results and process them
+    LaunchedEffect(resultStore) {
+        snapshotFlow { resultStore.resultStateMap.toMap() }.collect { results ->
+
+            // UnlockKeystore
+            results["unlock_keystore"]?.let { result ->
+                val unlock = result as? DialogResult.UnlockKeystore
+                if (unlock != null) {
+                    viewModel.unlockKeystore(unlock.sessionId, unlock.password)
+                    resultStore.removeResult<DialogResult.UnlockKeystore>("unlock_keystore")
+                }
+            }
+
+            // CreateKeystore
+            results["create_keystore"]?.let { result ->
+                val create = result as? DialogResult.CreateKeystore
+                if (create != null) {
+                    viewModel.createKeystore(create.file, create.password, create.format)
+                    resultStore.removeResult<DialogResult.CreateKeystore>("create_keystore")
+                }
+            }
+
+            // CreateKey
+            results["create_key"]?.let { result ->
+                val create = result as? DialogResult.CreateKey
+                if (create != null) {
+                    viewModel.createKey(create.alias, create.dn, create.validity)
+                    resultStore.removeResult<DialogResult.CreateKey>("create_key")
+                }
+            }
+
+            // RenameKey
+            results["rename_key"]?.let { result ->
+                val rename = result as? DialogResult.Rename
+                if (rename != null) {
+                    viewModel.renameKey(rename.oldAlias, rename.newAlias)
+                    resultStore.removeResult<DialogResult.Rename>("rename_key")
+                }
+            }
+
+            // DeleteKey
+            results["delete_key"]?.let { result ->
+                val delete = result as? DialogResult.Delete
+                if (delete != null) {
+                    viewModel.deleteKey(delete.alias)
+                    resultStore.removeResult<DialogResult.Delete>("delete_key")
+                }
+            }
+
+            // MoveKey
+            results["move_key"]?.let { result ->
+                val move = result as? DialogResult.Move
+                if (move != null) {
+                    viewModel.moveKey(move.alias, move.targetFile, move.targetPassword)
+                    resultStore.removeResult<DialogResult.Move>("move_key")
+                }
+            }
+
+            // BulkMoveKeys
+            results["bulk_move_keys"]?.let { result ->
+                val bulkMove = result as? DialogResult.BulkMove
+                if (bulkMove != null) {
+                    viewModel.setSelectedBulkAliases(bulkMove.aliases)
+                    viewModel.moveSelectedKeys(bulkMove.targetFile, bulkMove.targetPassword)
+                    resultStore.removeResult<DialogResult.BulkMove>("bulk_move_keys")
+                    resultStore.removeResult<List<String>>("bulk_move_selected_aliases")
+                }
+            }
+
+            // ChangeKeystorePassword
+            results["change_keystore_password"]?.let { result ->
+                val change = result as? DialogResult.ChangePassword
+                if (change != null) {
+                    viewModel.changeStorePassword(change.newPassword)
+                    resultStore.removeResult<DialogResult.ChangePassword>("change_keystore_password")
+                }
+            }
+
+            // ExportCert
+            results["export_cert"]?.let { result ->
+                val export = result as? DialogResult.ExportCert
+                if (export != null) {
+                    viewModel.exportCertificate(export.alias, export.file, export.asPem)
+                    resultStore.removeResult<DialogResult.ExportCert>("export_cert")
+                }
             }
         }
     }
