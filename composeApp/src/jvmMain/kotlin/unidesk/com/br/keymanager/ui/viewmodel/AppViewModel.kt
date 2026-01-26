@@ -18,6 +18,7 @@ import unidesk.com.br.keymanager.ui.state.AppState
 import unidesk.com.br.keymanager.ui.state.KeyTypeFilter
 import unidesk.com.br.keymanager.ui.state.KeystoreSortOrder
 import java.io.File
+import java.util.Locale
 
 sealed class AppEvent {
     data class ShowError(val message: String) : AppEvent()
@@ -43,10 +44,26 @@ class AppViewModel(
         initialValue = AppState()
     )
 
-    val isDarkMode: StateFlow<Boolean> = settingsRepository.isDarkMode
-    val defaultKeystoreFormat: StateFlow<String> = settingsRepository.defaultKeystoreFormat
-    val autoLockTimeoutMinutes: StateFlow<Int> = settingsRepository.autoLockTimeoutMinutes
-    val selectedLanguage: StateFlow<String> = settingsRepository.selectedLanguage
+    val isDarkMode: StateFlow<Boolean> = settingsRepository.isDarkMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+    val defaultKeystoreFormat: StateFlow<String> = settingsRepository.defaultKeystoreFormat.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "PKC12"
+    )
+    val autoLockTimeoutMinutes: StateFlow<Int> = settingsRepository.autoLockTimeoutMinutes.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 10
+    )
+    val selectedLanguage: StateFlow<String> = settingsRepository.selectedLanguage.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = Locale.getDefault().language
+    )
 
     private val _eventChannel = Channel<AppEvent>(Channel.BUFFERED)
     val eventChannel = _eventChannel.receiveAsFlow()
@@ -258,13 +275,17 @@ class AppViewModel(
         if (file.exists()) {
             openKeystore(file)
         } else {
-            settingsRepository.removeRecentKeystore(path)
+            viewModelScope.launch {
+                settingsRepository.removeRecentKeystore(path)
+            }
             _eventChannel.trySend(AppEvent.ShowError("Keystore file no longer exists: $path"))
         }
     }
 
     fun removeFromRecent(path: String) {
-        settingsRepository.removeRecentKeystore(path)
+        viewModelScope.launch {
+            settingsRepository.removeRecentKeystore(path)
+        }
     }
 
     fun selectKey(alias: String?) {
@@ -666,8 +687,7 @@ class AppViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val settingsRepository = SettingsRepository()
-                AppViewModel(settingsRepository = settingsRepository)
+                AppViewModel(settingsRepository = SettingsRepository())
             }
         }
     }

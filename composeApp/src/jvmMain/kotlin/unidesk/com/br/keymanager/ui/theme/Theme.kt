@@ -5,6 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLocalization
+import unidesk.com.br.keymanager.ui.locale.LocalAppLocale
+import java.util.Locale
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -73,7 +77,8 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun AppTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    languageCode: String = Locale.getDefault().language,
+    content: @Composable () -> Unit,
 ) {
     val colors = if (!useDarkTheme) {
         LightColors
@@ -81,9 +86,11 @@ fun AppTheme(
         DarkColors
     }
 
-    MaterialTheme(
-        colorScheme = colors,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalAppLocale provides languageCode) {
+        MaterialTheme(
+            colorScheme = colors,
+            typography = Typography,
+            content = content
+        )
+    }
 }
