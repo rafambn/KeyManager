@@ -63,7 +63,7 @@ fun MainScreen(
             results["create_keystore"]?.let { result ->
                 val create = result as? DialogResult.CreateKeystore
                 if (create != null) {
-                    viewModel.createKeystore(create.file, create.password, create.format)
+                    viewModel.createKeystore(create.file, create.password)
                     resultStore.removeResult<DialogResult.CreateKeystore>("create_keystore")
                 }
             }
@@ -256,10 +256,6 @@ fun selectFile(title: String, mode: Int = FileDialog.LOAD): File? {
     return if (dialog.directory != null && dialog.file != null) {
         File(dialog.directory, dialog.file)
     } else null
-}
-
-fun selectSaveFile(title: String): File? {
-    return selectFile(title, FileDialog.SAVE)
 }
 
 private fun copyToClipboard(text: String) {

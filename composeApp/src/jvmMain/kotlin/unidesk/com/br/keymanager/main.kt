@@ -22,7 +22,6 @@ fun main() = application {
             val window = Window.getWindows().lastOrNull()
             window?.minimumSize = Dimension(1200, 600)
         }
-
         App()
     }
 }

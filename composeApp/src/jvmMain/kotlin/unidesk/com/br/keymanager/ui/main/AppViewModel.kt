@@ -34,33 +34,10 @@ class AppViewModel(
         initialValue = AppState()
     )
 
-    val isDarkMode: StateFlow<Boolean> = settingsRepository.isDarkMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
-    )
-    val defaultKeystoreFormat: StateFlow<String> = settingsRepository.defaultKeystoreFormat.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = "PKC12"
-    )
-    val autoLockTimeoutMinutes: StateFlow<Int> = settingsRepository.autoLockTimeoutMinutes.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 10
-    )
-    val selectedLanguage: StateFlow<String> = settingsRepository.selectedLanguage.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = Locale.getDefault().language
-    )
-
     private val _eventChannel = Channel<AppEvent>(Channel.BUFFERED)
     val eventChannel = _eventChannel.receiveAsFlow()
 
     private var selectedBulkAliases = mutableListOf<String>()
-
-    fun getSelectedBulkAliases(): List<String> = selectedBulkAliases.toList()
 
     fun setSelectedBulkAliases(aliases: List<String>) {
         selectedBulkAliases.clear()
@@ -177,7 +154,7 @@ class AppViewModel(
         }
     }
 
-    fun createKeystore(file: File, password: String, format: String) {
+    fun createKeystore(file: File, password: String) {
         viewModelScope.launch {
             val tempAlias = "__temp_init_key__"
             val result = KeyToolAPI.genKeyPair(
@@ -299,27 +276,6 @@ class AppViewModel(
                 serialNumber = entry.serialNumber
             )
         }.sortedBy { it.alias }
-    }
-
-    fun getFilteredKeys(): List<KeyInfo> {
-        val allKeys = getKeysForSelectedKeystore()
-        val searchQuery = _state.value.keySearchQuery
-        val typeFilter = _state.value.keyTypeFilter
-
-        return allKeys
-            .filter { key ->
-                if (searchQuery.isBlank()) true
-                else key.alias.contains(searchQuery, ignoreCase = true) ||
-                        key.details.contains(searchQuery, ignoreCase = true)
-            }
-            .filter { key ->
-                when (typeFilter) {
-                    KeyTypeFilter.ALL -> true
-                    KeyTypeFilter.PRIVATE_KEY -> key.entryType == EntryType.PRIVATE_KEY
-                    KeyTypeFilter.TRUSTED_CERT -> key.entryType == EntryType.TRUSTED_CERT
-                    KeyTypeFilter.SECRET_KEY -> key.entryType == EntryType.SECRET_KEY
-                }
-            }
     }
 
     fun deleteKey(alias: String) {
@@ -509,19 +465,6 @@ class AppViewModel(
         }
     }
 
-    fun setKeyPassword(alias: String, keyPassword: String) {
-        val session = _state.value.selectedSession ?: return
-
-        _state.update { state ->
-            state.copy(
-                keystoreSessions = state.keystoreSessions + (session.id to session.copy(
-                    keyPasswords = session.keyPasswords + (alias to keyPassword)
-                ))
-            )
-        }
-    }
-
-
     fun exportCertificate(alias: String, outputFile: File, asPem: Boolean) {
         val session = _state.value.selectedSession ?: return
         val storePassword = session.storePassword ?: return
@@ -540,21 +483,6 @@ class AppViewModel(
 
                 is KeytoolResult.Error -> {
                     _eventChannel.trySend(ShowError("Failed to export certificate: ${result.message}"))
-                }
-            }
-        }
-    }
-
-    fun inspectCrl(file: File) {
-        viewModelScope.launch {
-            when (val result = KeyToolAPI.printCrl(file, verbose = true)) {
-                is KeytoolResult.Success -> {
-
-                    _eventChannel.trySend(ShowError("CRL inspection completed"))
-                }
-
-                is KeytoolResult.Error -> {
-                    _eventChannel.trySend(ShowError("Failed to inspect CRL: ${result.message}"))
                 }
             }
         }
@@ -589,38 +517,6 @@ class AppViewModel(
         }
     }
 
-    fun changeKeyPassword(alias: String, oldPassword: String, newPassword: String) {
-        val session = _state.value.selectedSession ?: return
-        val storePassword = session.storePassword ?: return
-
-        viewModelScope.launch {
-            when (val result = KeyToolAPI.keyPasswd(
-                keystore = session.file,
-                storepass = storePassword,
-                alias = alias,
-                keypass = oldPassword,
-                newKeypass = newPassword
-            )) {
-                is KeytoolResult.Success -> {
-
-                    _state.update { state ->
-                        state.copy(
-                            keystoreSessions = state.keystoreSessions + (session.id to session.copy(
-                                keyPasswords = session.keyPasswords - alias + (alias to newPassword)
-                            ))
-                        )
-                    }
-                    _eventChannel.trySend(ShowError("Key password changed successfully"))
-                }
-
-                is KeytoolResult.Error -> {
-                    _eventChannel.trySend(ShowError("Failed to change key password: ${result.message}"))
-                }
-            }
-        }
-    }
-
-
     fun setKeystoreSearchQuery(query: String) {
         _state.update { it.copy(keystoreSearchQuery = query) }
     }
@@ -635,37 +531,6 @@ class AppViewModel(
 
     fun setKeyTypeFilter(filter: KeyTypeFilter) {
         _state.update { it.copy(keyTypeFilter = filter) }
-    }
-
-
-    fun setDarkMode(enabled: Boolean) {
-        settingsRepository.setDarkMode(enabled)
-    }
-
-    fun setDefaultKeystoreFormat(format: String) {
-        settingsRepository.setDefaultKeystoreFormat(format)
-    }
-
-    fun setAutoLockTimeout(minutes: Int) {
-        settingsRepository.setAutoLockTimeout(minutes)
-    }
-
-    fun setLanguage(languageCode: String) {
-        settingsRepository.setLanguage(languageCode)
-    }
-
-
-    fun clearError() {
-        _state.update { it.copy(globalError = null) }
-    }
-
-    fun clearKeystoreError(sessionId: String) {
-        val session = _state.value.keystoreSessions[sessionId] ?: return
-        _state.update { state ->
-            state.copy(
-                keystoreSessions = state.keystoreSessions + (sessionId to session.copy(errorMessage = null))
-            )
-        }
     }
 
     companion object {
