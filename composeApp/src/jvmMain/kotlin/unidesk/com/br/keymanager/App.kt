@@ -6,7 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import unidesk.com.br.keymanager.repo.SettingsRepository
-import unidesk.com.br.keymanager.ui.screens.navigation.NavigationRoot
+import unidesk.com.br.keymanager.ui.navigation.NavigationRoot
 import unidesk.com.br.keymanager.ui.theme.AppTheme
 import java.util.*
 
