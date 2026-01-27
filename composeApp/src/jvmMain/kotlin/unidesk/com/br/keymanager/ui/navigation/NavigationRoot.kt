@@ -127,7 +127,7 @@ fun NavigationRoot(
 
             entry<Route.CreateKey>(
                 metadata = DialogSceneStrategy.dialog()
-            ) { key ->
+            ) {
                 CreateKeyScreen(
                     onCreateKey = { alias, dn, validity ->
                         resultStore.setResult(
@@ -265,7 +265,7 @@ fun NavigationRoot(
 
             entry<Route.KeyDetails>(
                 metadata = DialogSceneStrategy.dialog()
-            ) { key ->
+            ) {
                 val keyInfo = resultStore.getResultState<KeyInfo>("key_details_data")
                 if (keyInfo != null) {
                     KeyDetailsScreen(

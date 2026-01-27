@@ -7,6 +7,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import unidesk.com.br.keymanager.ObserveAsEvents
 import unidesk.com.br.keymanager.keytool.enums.EntryType
 import unidesk.com.br.keymanager.keytool.model.KeyInfo
 import unidesk.com.br.keymanager.ui.main.panes.ThreePaneLayout
@@ -34,18 +35,14 @@ fun MainScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel) {
-        viewModel.eventChannel.collect { event ->
-            when (event) {
-                is AppEvent.ShowError -> {
-                    snackbarHostState.showSnackbar(
-                        message = event.message,
-                        duration = SnackbarDuration.Long,
-                        withDismissAction = true
-                    )
-                }
-
-                else -> {}
+    ObserveAsEvents(viewModel.eventChannel){
+        when (it){
+            is ShowError -> {
+                snackbarHostState.showSnackbar(
+                    message = it.message,
+                    duration = SnackbarDuration.Long,
+                    withDismissAction = true
+                )
             }
         }
     }

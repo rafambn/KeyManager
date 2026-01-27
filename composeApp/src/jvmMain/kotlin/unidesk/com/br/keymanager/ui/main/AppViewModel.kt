@@ -120,14 +120,11 @@ class AppViewModel(
                         )
                     }
 
-
                     settingsRepository.addRecentKeystore(
                         path = session.path,
                         name = session.name,
                         keystoreType = result.data.type
                     )
-
-                    _eventChannel.trySend(AppEvent.KeystoreOpened(sessionId))
                 }
 
                 is KeytoolResult.Error -> {
@@ -140,7 +137,7 @@ class AppViewModel(
                             ))
                         )
                     }
-                    _eventChannel.trySend(AppEvent.ShowError(errorMessage))
+                    _eventChannel.trySend(ShowError(errorMessage))
                 }
             }
         }
@@ -178,8 +175,6 @@ class AppViewModel(
                 selectedKeyAlias = if (state.selectedKeystoreId == sessionId) null else state.selectedKeyAlias
             )
         }
-
-        _eventChannel.trySend(AppEvent.KeystoreClosed(sessionId))
     }
 
     fun createKeystore(file: File, password: String, format: String) {
@@ -200,11 +195,11 @@ class AppViewModel(
 
                     openKeystore(file)
                     settingsRepository.addRecentKeystore(file.absolutePath, file.name)
-                    _eventChannel.trySend(AppEvent.ShowError("Keystore created successfully"))
+                    _eventChannel.trySend(ShowError("Keystore created successfully"))
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to create keystore: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to create keystore: ${result.message}"))
                 }
             }
         }
@@ -254,7 +249,7 @@ class AppViewModel(
                             ))
                         )
                     }
-                    _eventChannel.trySend(AppEvent.ShowError(errorMessage))
+                    _eventChannel.trySend(ShowError(errorMessage))
                 }
             }
         }
@@ -268,7 +263,7 @@ class AppViewModel(
             viewModelScope.launch {
                 settingsRepository.removeRecentKeystore(path)
             }
-            _eventChannel.trySend(AppEvent.ShowError("Keystore file no longer exists: $path"))
+            _eventChannel.trySend(ShowError("Keystore file no longer exists: $path"))
         }
     }
 
@@ -341,7 +336,7 @@ class AppViewModel(
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to delete key: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to delete key: ${result.message}"))
                 }
             }
         }
@@ -378,7 +373,7 @@ class AppViewModel(
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to rename key: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to rename key: ${result.message}"))
                 }
             }
         }
@@ -414,13 +409,13 @@ class AppViewModel(
                         }
 
                         is KeytoolResult.Error -> {
-                            _eventChannel.trySend(AppEvent.ShowError("Key copied but failed to delete from source: ${deleteResult.message}"))
+                            _eventChannel.trySend(ShowError("Key copied but failed to delete from source: ${deleteResult.message}"))
                         }
                     }
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to move key: ${importResult.message}"))
+                    _eventChannel.trySend(ShowError("Failed to move key: ${importResult.message}"))
                 }
             }
         }
@@ -455,7 +450,7 @@ class AppViewModel(
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to create key: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to create key: ${result.message}"))
                 }
             }
         }
@@ -500,7 +495,7 @@ class AppViewModel(
             }
 
             if (errors.isNotEmpty()) {
-                _eventChannel.trySend(AppEvent.ShowError("Some keys failed to move:\n${errors.joinToString("\n")}"))
+                _eventChannel.trySend(ShowError("Some keys failed to move:\n${errors.joinToString("\n")}"))
             }
 
             clearSelectedBulkAliases()
@@ -540,11 +535,11 @@ class AppViewModel(
                 rfc = asPem
             )) {
                 is KeytoolResult.Success -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Certificate exported successfully to ${outputFile.name}"))
+                    _eventChannel.trySend(ShowError("Certificate exported successfully to ${outputFile.name}"))
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to export certificate: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to export certificate: ${result.message}"))
                 }
             }
         }
@@ -555,11 +550,11 @@ class AppViewModel(
             when (val result = KeyToolAPI.printCrl(file, verbose = true)) {
                 is KeytoolResult.Success -> {
 
-                    _eventChannel.trySend(AppEvent.ShowError("CRL inspection completed"))
+                    _eventChannel.trySend(ShowError("CRL inspection completed"))
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to inspect CRL: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to inspect CRL: ${result.message}"))
                 }
             }
         }
@@ -584,11 +579,11 @@ class AppViewModel(
                             ))
                         )
                     }
-                    _eventChannel.trySend(AppEvent.ShowError("Keystore password changed successfully"))
+                    _eventChannel.trySend(ShowError("Keystore password changed successfully"))
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to change keystore password: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to change keystore password: ${result.message}"))
                 }
             }
         }
@@ -615,11 +610,11 @@ class AppViewModel(
                             ))
                         )
                     }
-                    _eventChannel.trySend(AppEvent.ShowError("Key password changed successfully"))
+                    _eventChannel.trySend(ShowError("Key password changed successfully"))
                 }
 
                 is KeytoolResult.Error -> {
-                    _eventChannel.trySend(AppEvent.ShowError("Failed to change key password: ${result.message}"))
+                    _eventChannel.trySend(ShowError("Failed to change key password: ${result.message}"))
                 }
             }
         }
@@ -662,7 +657,6 @@ class AppViewModel(
 
     fun clearError() {
         _state.update { it.copy(globalError = null) }
-        _eventChannel.trySend(AppEvent.ClearError)
     }
 
     fun clearKeystoreError(sessionId: String) {
