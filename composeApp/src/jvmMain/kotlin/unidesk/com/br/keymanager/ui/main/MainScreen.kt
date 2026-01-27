@@ -31,7 +31,6 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val viewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
-    resultStore.setResult("app_view_model", viewModel)
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 

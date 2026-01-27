@@ -26,7 +26,7 @@ import unidesk.com.br.keymanager.ui.dialogs.PasswordScreen
 import unidesk.com.br.keymanager.ui.dialogs.RenameScreen
 import unidesk.com.br.keymanager.ui.dialogs.SettingsScreen
 import unidesk.com.br.keymanager.selectDestinationFile
-import unidesk.com.br.keymanager.ui.main.AppViewModel
+import unidesk.com.br.keymanager.repo.SettingsRepository
 import unidesk.com.br.keymanager.ui.main.MainScreen
 import java.io.File
 
@@ -297,13 +297,11 @@ fun NavigationRoot(
             entry<Route.Settings>(
                 metadata = DialogSceneStrategy.dialog()
             ) {
-                val appViewModel = resultStore.getResultState<AppViewModel>("app_view_model")
-                if (appViewModel != null) {
-                    SettingsScreen(
-                        viewModel = appViewModel,
-                        onNavigateBack = { backStack.pop() }
-                    )
-                }
+                val settingsRepository = remember { SettingsRepository() }
+                SettingsScreen(
+                    repository = settingsRepository,
+                    onNavigateBack = { backStack.pop() }
+                )
             }
         }
     )

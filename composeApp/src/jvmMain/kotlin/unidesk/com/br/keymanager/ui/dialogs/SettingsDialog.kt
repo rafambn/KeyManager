@@ -11,18 +11,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import unidesk.com.br.keymanager.ui.main.AppViewModel
+import unidesk.com.br.keymanager.repo.SettingsRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(
-    viewModel: AppViewModel,
+    repository: SettingsRepository,
     onDismiss: () -> Unit
 ) {
-    val isDarkMode by viewModel.isDarkMode.collectAsState()
-    val defaultFormat by viewModel.defaultKeystoreFormat.collectAsState()
-    val autoLockTimeout by viewModel.autoLockTimeoutMinutes.collectAsState()
-    val selectedLanguage by viewModel.selectedLanguage.collectAsState()
+    val isDarkMode by repository.isDarkMode.collectAsState(initial = false)
+    val defaultFormat by repository.defaultKeystoreFormat.collectAsState(initial = "PKCS12")
+    val autoLockTimeout by repository.autoLockTimeoutMinutes.collectAsState(initial = 0)
+    val selectedLanguage by repository.selectedLanguage.collectAsState(initial = "pt-BR")
 
     var formatExpanded by remember { mutableStateOf(false) }
     var timeoutExpanded by remember { mutableStateOf(false) }
@@ -78,7 +78,7 @@ fun SettingsDialog(
                     }
                     Switch(
                         checked = isDarkMode,
-                        onCheckedChange = { viewModel.setDarkMode(it) }
+                        onCheckedChange = { repository.setDarkMode(it) }
                     )
                 }
 
@@ -120,7 +120,7 @@ fun SettingsDialog(
                             DropdownMenuItem(
                                 text = { Text(format) },
                                 onClick = {
-                                    viewModel.setDefaultKeystoreFormat(format)
+                                    repository.setDefaultKeystoreFormat(format)
                                     formatExpanded = false
                                 }
                             )
@@ -166,7 +166,7 @@ fun SettingsDialog(
                             DropdownMenuItem(
                                 text = { Text(label) },
                                 onClick = {
-                                    viewModel.setAutoLockTimeout(minutes)
+                                    repository.setAutoLockTimeout(minutes)
                                     timeoutExpanded = false
                                 }
                             )
@@ -212,7 +212,7 @@ fun SettingsDialog(
                             DropdownMenuItem(
                                 text = { Text(label) },
                                 onClick = {
-                                    viewModel.setLanguage(code)
+                                    repository.setLanguage(code)
                                     languageExpanded = false
                                 }
                             )
