@@ -201,9 +201,8 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), "wrongpass")
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertEquals(1, error.exitCode)
-        assertTrue(error.message.contains("password was incorrect"))
+        assertEquals(1, result.exitCode)
+        assertTrue(result.message.contains("password was incorrect"))
     }
 
     @Test
@@ -216,8 +215,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File("/nonexistent.jks"), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertTrue(error.message.contains("No such file or directory"))
+        assertTrue(result.message.contains("No such file or directory"))
     }
 
     @Test
@@ -226,8 +224,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertTrue(error.message.contains("Failed to parse"))
+        assertTrue(result.message.contains("Failed to parse"))
     }
 
     @Test
@@ -825,8 +822,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCert(File(TEST_CERT_PATH))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertTrue(error.message.contains("Failed to parse"))
+        assertTrue(result.message.contains("Failed to parse"))
     }
 
     @Test
@@ -953,8 +949,7 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCertReq(File("/tmp/req.csr"))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertTrue(error.message.contains("Failed to parse"))
+        assertTrue(result.message.contains("Failed to parse"))
     }
 
     // ===== 16. PRINTCRL Function Tests =====
@@ -1002,7 +997,6 @@ class KeyToolAPITest {
         val result = KeyToolAPI.printCrl(File("/tmp/crl.pem"))
 
         assertTrue(result is KeytoolResult.Error)
-        val error = result
-        assertTrue(error.message.contains("Failed to parse"))
+        assertTrue(result.message.contains("Failed to parse"))
     }
 }

@@ -257,7 +257,7 @@ enum class SignatureAlgorithm(
          */
         fun fromCliName(name: String?): SignatureAlgorithm? {
             if (name == null) return null
-            return values().find { it.cliName.equals(name, ignoreCase = true) }
+            return entries.find { it.cliName.equals(name, ignoreCase = true) }
         }
 
         /**
@@ -300,21 +300,21 @@ enum class SignatureAlgorithm(
          * Get all signature algorithms compatible with a given key algorithm
          */
         fun compatibleWith(keyAlgorithm: KeyAlgorithm): List<SignatureAlgorithm> {
-            return values().filter { it.keyAlgorithmFamily == keyAlgorithm.cliName }
+            return entries.filter { it.keyAlgorithmFamily == keyAlgorithm.cliName }
         }
 
         /**
          * Get all usable (non-disabled) signature algorithms
          */
         fun usableAlgorithms(): List<SignatureAlgorithm> {
-            return values().filter { !it.disabled }
+            return entries.filter { !it.disabled }
         }
 
         /**
          * Get all deprecated (but usable) signature algorithms
          */
         fun deprecatedAlgorithms(): List<SignatureAlgorithm> {
-            return values().filter { it.deprecated && !it.disabled }
+            return entries.filter { it.deprecated && !it.disabled }
         }
 
         /**

@@ -89,7 +89,7 @@ enum class ECCurve(
         fun fromCliName(name: String?): ECCurve? {
             if (name == null) return null
             val lowerName = name.lowercase()
-            return values().find {
+            return entries.find {
                 it.cliName.lowercase() == lowerName ||
                         it.aliases.any { alias -> alias.lowercase() == lowerName }
             }
@@ -101,11 +101,11 @@ enum class ECCurve(
          * Get all recommended NIST curves (not deprecated)
          */
         fun recommendedCurves(): List<ECCurve> {
-            return values().filter { !it.deprecated }
+            return entries.filter { !it.deprecated }
         }
 
         fun deprecatedCurves(): List<ECCurve> {
-            return values().filter { it.deprecated }
+            return entries.filter { it.deprecated }
         }
     }
 

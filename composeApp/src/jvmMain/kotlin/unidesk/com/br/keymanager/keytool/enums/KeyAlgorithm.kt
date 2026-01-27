@@ -197,28 +197,28 @@ enum class KeyAlgorithm(
          */
         fun fromCliName(name: String?): KeyAlgorithm? {
             if (name == null) return null
-            return values().find { it.cliName.equals(name, ignoreCase = true) }
+            return entries.find { it.cliName.equals(name, ignoreCase = true) }
         }
 
         /**
          * Get all algorithms that support signatures
          */
         fun signatureAlgorithms(): List<KeyAlgorithm> {
-            return values().filter { it.supportsSignature }
+            return entries.filter { it.supportsSignature }
         }
 
         /**
          * Get all algorithms that support key agreement
          */
         fun keyAgreementAlgorithms(): List<KeyAlgorithm> {
-            return values().filter { it.supportsKeyAgreement }
+            return entries.filter { it.supportsKeyAgreement }
         }
 
         /**
          * Get all quantum-resistant algorithms
          */
         fun quantumResistantAlgorithms(): List<KeyAlgorithm> {
-            return values().filter { it.isQuantumResistant }
+            return entries.filter { it.isQuantumResistant }
         }
     }
 

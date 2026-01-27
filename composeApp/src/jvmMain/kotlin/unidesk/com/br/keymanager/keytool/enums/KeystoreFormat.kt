@@ -87,7 +87,7 @@ enum class KeystoreFormat(
          */
         fun fromCliName(name: String?): KeystoreFormat? {
             if (name == null) return null
-            return values().find { it.cliName.equals(name, ignoreCase = true) }
+            return entries.find { it.cliName.equals(name, ignoreCase = true) }
         }
 
         /**
@@ -99,21 +99,21 @@ enum class KeystoreFormat(
          * Get all file-based formats (have file extension)
          */
         fun fileBasedFormats(): List<KeystoreFormat> {
-            return values().filter { it.fileExtension != null }
+            return entries.filter { it.fileExtension != null }
         }
 
         /**
          * Get all deprecated formats (JKS, JCEKS)
          */
         fun deprecatedFormats(): List<KeystoreFormat> {
-            return values().filter { it.deprecated }
+            return entries.filter { it.deprecated }
         }
 
         /**
          * Get all non-platform-specific formats (portable across systems)
          */
         fun portableFormats(): List<KeystoreFormat> {
-            return values().filter { !it.platformSpecific }
+            return entries.filter { !it.platformSpecific }
         }
 
         /**
