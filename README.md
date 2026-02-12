@@ -1,10 +1,7 @@
 # KeyManager
 
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="composeApp/src/jvmMain/composeResources/drawable/app_icon.xml">
-    <img alt="KeyManager Icon" src="composeApp/src/jvmMain/composeResources/drawable/app_icon.xml" width="120">
-  </picture>
+  <img alt="KeyManager Icon" src="app_icon.svg" width="120" height="120">
 </div>
 
 **Modern Desktop Application for Java Keystore Management**
