@@ -32,7 +32,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run tests
-        run: ./gradlew :composeApp:test --no-daemon
+        run: ./gradlew :composeApp:jvmTest --no-daemon
         shell: bash
 
       - name: Upload test results
@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: composeApp/build/test-results/
+          path: composeApp/build/test-results/jvmTest/
           retention-days: 7
 
   build-distributions:

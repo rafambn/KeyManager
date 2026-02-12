@@ -1,8 +1,8 @@
 # KeyManager
 
-<div align="center">
-  <img alt="KeyManager Icon" src="app_icon.svg" width="120" height="120">
-</div>
+<p align="center">
+  <img src="app_icon.svg" alt="KeyManager Icon" width="200" height="200">
+</p>
 
 **Modern Desktop Application for Java Keystore Management**
 
