@@ -1,0 +1,141 @@
+package com.rafambn.keymanager.ui.dialogs
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import java.awt.FileDialog
+import java.awt.Frame
+import java.io.File
+
+@Composable
+fun ExportCertDialog(
+    alias: String,
+    onDismiss: () -> Unit,
+    onExport: (File, Boolean) -> Unit
+) {
+    var filePath by remember { mutableStateOf("") }
+    var asPem by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.width(400.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "Export Certificate",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Alias: $alias",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(24.dp))
+
+                Text(
+                    text = "Format",
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = asPem,
+                        onClick = { asPem = true }
+                    )
+                    Text(
+                        text = "PEM (Base64 encoded)",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = !asPem,
+                        onClick = { asPem = false }
+                    )
+                    Text(
+                        text = "DER (Binary)",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = filePath,
+                        onValueChange = { filePath = it },
+                        label = { Text("Save to") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            val dialog = FileDialog(null as Frame?, "Save Certificate", FileDialog.SAVE)
+                            val extension = if (asPem) ".pem" else ".der"
+                            dialog.file = "$alias$extension"
+                            dialog.isVisible = true
+                            if (dialog.directory != null && dialog.file != null) {
+                                var selectedFile = dialog.file
+
+                                if (!selectedFile.endsWith(extension)) {
+                                    selectedFile = if (selectedFile.contains(".")) {
+                                        selectedFile.substringBeforeLast(".") + extension
+                                    } else {
+                                        selectedFile + extension
+                                    }
+                                }
+                                filePath = File(dialog.directory, selectedFile).absolutePath
+                            }
+                        }
+                    ) {
+                        Text("Browse")
+                    }
+                }
+                if (error != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            when {
+                                filePath.isBlank() -> error = "Please select a file path"
+                                else -> onExport(File(filePath), asPem)
+                            }
+                        },
+                        enabled = filePath.isNotBlank()
+                    ) {
+                        Text("Export")
+                    }
+                }
+            }
+        }
+    }
+}

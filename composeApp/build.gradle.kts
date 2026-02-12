@@ -37,11 +37,6 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(compose.desktop.linux_x64)
-            implementation(compose.desktop.linux_arm64)
-            implementation(compose.desktop.windows_x64)
-            implementation(compose.desktop.macos_arm64)
-            implementation(compose.desktop.macos_x64)
             implementation(libs.kotlinx.coroutinesSwing)
         }
     }
@@ -50,11 +45,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "unidesk.com.br.keymanager.MainKt"
+        mainClass = "com.rafambn.keymanager.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "unidesk.com.br.keymanager"
+            packageName = "com.rafambn.keymanager"
             packageVersion = "1.0.0"
         }
     }
