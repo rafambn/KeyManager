@@ -30,6 +30,7 @@ jobs:
 
       - name: Run tests
         run: ./gradlew :composeApp:test --no-daemon
+        shell: bash
 
       - name: Upload test results
         if: failure()

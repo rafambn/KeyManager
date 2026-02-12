@@ -1,13 +1,18 @@
 # KeyManager
 
-<!-- Add app icon here -->
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="composeApp/src/jvmMain/composeResources/drawable/app_icon.xml">
+    <img alt="KeyManager Icon" src="composeApp/src/jvmMain/composeResources/drawable/app_icon.xml" width="120">
+  </picture>
+</div>
 
 **Modern Desktop Application for Java Keystore Management**
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/<username>/KeyManager/build.yml?branch=master)](https://github.com/<username>/KeyManager/actions)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)](https://github.com/<username>/KeyManager/releases)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/<username>/KeyManager/releases)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-purple)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-purple)](https://kotlinlang.org)
 
 ## Overview
 
@@ -45,40 +50,13 @@ Download the installer for your architecture from the [Releases](https://github.
   - `keymanager-linux-x64.deb` (x86-64)
   - `keymanager-linux-arm64.deb` (ARM64)
 
-### System Requirements
-
-- **Java 21 or later** (JRE required to run the application)
-- **Memory**: 512 MB minimum, 2 GB recommended
-- **Disk Space**: 200 MB for installation
-
-## Building from Source
-
-### Prerequisites
-- JDK 21 or later
-- Git
-
-### Build Commands
-
-```bash
-# Run the application
-./gradlew :composeApp:run
-
-# Run all tests
-./gradlew :composeApp:test
-
-# Build distribution packages
-./gradlew :composeApp:packageDmg   # macOS DMG
-./gradlew :composeApp:packageMsi   # Windows MSI
-./gradlew :composeApp:packageDeb   # Linux DEB
-```
-
 ## Contributing
 
 We welcome contributions! Whether you want to report bugs, suggest features, or submit code improvements:
 
 1. **Report Issues**: Open a [GitHub Issue](https://github.com/<username>/KeyManager/issues) to report bugs or suggest features
 2. **Submit Pull Requests**: Fork the repository, create a feature branch, and submit a PR with your improvements
-3. **Code Guidelines**: Follow the existing code style and patterns (see [Architecture](./claude/docs/architecture.md))
+3. **Code Guidelines**: Follow the existing code style and patterns
 4. **Testing**: Ensure all tests pass before submitting (`./gradlew :composeApp:test`)
 
 Contributions are welcome! Feel free to open issues, submit pull requests, or suggest new features. Let's make KeyManager better together! 🚀
