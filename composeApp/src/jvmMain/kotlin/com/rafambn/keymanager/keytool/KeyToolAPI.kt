@@ -297,10 +297,9 @@ object KeyToolAPI {
             "-importpass",
             "-alias", alias,
             "-keystore", keystore.absolutePath,
-            "-storepass", storepass,
-            "-keypass", keypass
+            "-storepass", storepass
         )
-        val result = KeyToolExecutor.execute(*args.toTypedArray())
+        val result = KeyToolExecutor.execute(*args.toTypedArray(), stdin = "$keypass\n$keypass\n")
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
         } else {

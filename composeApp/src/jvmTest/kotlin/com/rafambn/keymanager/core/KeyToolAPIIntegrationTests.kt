@@ -4,6 +4,7 @@ import java.io.File
 import kotlin.test.*
 import kotlinx.coroutines.test.runTest
 import com.rafambn.keymanager.keytool.KeyToolAPI
+import com.rafambn.keymanager.keytool.KeyToolExecutor
 import com.rafambn.keymanager.keytool.KeytoolResult
 import com.rafambn.keymanager.keytool.enums.KeyAlgorithm
 import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
@@ -121,7 +122,7 @@ class KeyToolAPIIntegrationTests {
         val result = KeyToolAPI.genKeyPair(
             ks, TEST_PASSWORD, "bad", KEY_PASSWORD, DN, 365,
             keyAlgorithm = KeyAlgorithm.RSA,
-            keySize = 10000  // Invalid
+            keySize = 20000  // Out of RSA supported range (512..16384)
         )
 
         assertTrue(result is KeytoolResult.Error)
@@ -291,6 +292,9 @@ class KeyToolAPIIntegrationTests {
         val result = KeyToolAPI.importPass(ks, TEST_PASSWORD, "pwd_entry", "secret")
 
         assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "pwd_entry" }, "Imported password entry not found in keystore")
     }
 
     // ===== 10. DELETE FUNCTION =====
@@ -338,14 +342,30 @@ class KeyToolAPIIntegrationTests {
 
     @Test
     fun test_21_keyPasswd() = runTest {
-        val ks = newKeystore()
-        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+        val ks = File(testDir, "jks_${System.nanoTime()}.jks")
+        KeyToolExecutor.execute(
+            "-genkeypair",
+            "-alias", "key",
+            "-dname", DN,
+            "-validity", "365",
+            "-keyalg", "RSA",
+            "-keysize", "2048",
+            "-keystore", ks.absolutePath,
+            "-storepass", TEST_PASSWORD,
+            "-keypass", KEY_PASSWORD,
+            "-storetype", "JKS"
+        )
 
         val result = KeyToolAPI.keyPasswd(
             ks, TEST_PASSWORD, "key", KEY_PASSWORD, "newkeypass"
         )
 
-        assertTrue(result is KeytoolResult.Success)
+        assertTrue(result is KeytoolResult.Success, "keyPasswd should succeed on JKS keystore")
+
+        val csr = File(testDir, "keypasswd_test.csr")
+        val csrResult = KeyToolAPI.certReq(ks, TEST_PASSWORD, "key", "newkeypass", csr)
+        assertTrue(csrResult is KeytoolResult.Success, "certReq with new key password should succeed")
+        assertTrue(csr.exists(), "CSR file should be created")
     }
 
     // ===== 13. STOREPASSWD FUNCTION =====

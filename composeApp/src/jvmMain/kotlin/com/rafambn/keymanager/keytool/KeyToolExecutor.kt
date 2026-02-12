@@ -1,9 +1,10 @@
 package com.rafambn.keymanager.keytool
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 internal object KeyToolExecutor {
     internal data class RawResult(val stdout: String, val stderr: String, val exitCode: Int)
@@ -25,16 +26,32 @@ internal object KeyToolExecutor {
         processBuilder.start()
     }
 
-    internal suspend fun execute(vararg args: String): RawResult = withContext(Dispatchers.IO) {
+    internal suspend fun execute(vararg args: String, stdin: String? = null): RawResult = withContext(Dispatchers.IO) {
         val command = listOf(keytoolPath) + args.toList()
         val process = processFactory(command)
-        val stdout = process.inputStream.bufferedReader().readText()
-        val stderr = process.errorStream.bufferedReader().readText()
-        val completed = process.waitFor(60, TimeUnit.SECONDS)
-        if (completed) {
-            RawResult(stdout, stderr, process.exitValue())
+
+        if (stdin != null) {
+            process.outputStream.bufferedWriter().use { it.write(stdin) }
+        } else {
+            process.outputStream.close()
+        }
+
+        val stdoutDeferred = async { process.inputStream.bufferedReader().use { it.readText() } }
+        val stderrDeferred = async { process.errorStream.bufferedReader().use { it.readText() } }
+
+        val result = withTimeoutOrNull(60_000L) {
+            val exitCode = process.waitFor()
+            val stdout = stdoutDeferred.await()
+            val stderr = stderrDeferred.await()
+            RawResult(stdout, stderr, exitCode)
+        }
+
+        if (result != null) {
+            result
         } else {
             process.destroyForcibly()
+            stdoutDeferred.cancel()
+            stderrDeferred.cancel()
             RawResult("", "Process timed out", -1)
         }
     }
