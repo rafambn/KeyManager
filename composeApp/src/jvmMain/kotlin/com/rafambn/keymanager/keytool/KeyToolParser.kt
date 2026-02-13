@@ -8,7 +8,7 @@ import com.rafambn.keymanager.keytool.model.KeystoreEntry
 import com.rafambn.keymanager.keytool.model.KeystoreInfo
 
 internal object KeyToolParser {
-    internal fun parseListVerboseOutput(output: String): KeystoreInfo {
+    internal fun parseListOutput(output: String, verbose: Boolean = true): KeystoreInfo {
         val lines = output.lines()
 
         var type = "Unknown"
@@ -33,7 +33,7 @@ internal object KeyToolParser {
         }
 
         val entryBlocks = output.split(Regex("(?=Alias name:)")).filter { it.contains("Alias name:") }
-        val entries = entryBlocks.map { parseKeystoreEntry(it) }
+        val entries = entryBlocks.map { parseKeystoreEntry(it, verbose) }
 
         if (entries.size != entryCount && entryCount > 0) {
             System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
@@ -54,7 +54,7 @@ internal object KeyToolParser {
         return KeystoreInfo(type, provider, entryCount, entries)
     }
 
-    internal fun parseKeystoreEntry(block: String): KeystoreEntry {
+    internal fun parseKeystoreEntry(block: String, verbose: Boolean = true): KeystoreEntry {
         val lines = block.lines()
         var alias = ""
         var creationDate = ""
@@ -92,30 +92,30 @@ internal object KeyToolParser {
                     chainLength = trimmed.substringAfter("Certificate chain length:").trim().toIntOrNull()
                 }
 
-                trimmed.startsWith("Owner:") -> {
+                verbose && trimmed.startsWith("Owner:") -> {
                     owner = trimmed.substringAfter("Owner:").trim()
                 }
 
-                trimmed.startsWith("Issuer:") -> {
+                verbose && trimmed.startsWith("Issuer:") -> {
                     issuer = trimmed.substringAfter("Issuer:").trim()
                 }
 
-                trimmed.startsWith("Serial number:") -> {
+                verbose && trimmed.startsWith("Serial number:") -> {
                     serialNumber = trimmed.substringAfter("Serial number:").trim()
                 }
 
-                trimmed.startsWith("Valid from:") -> {
+                verbose && trimmed.startsWith("Valid from:") -> {
 
                     val parts = trimmed.substringAfter("Valid from:").split("until:")
                     validFrom = parts.getOrNull(0)?.trim()
                     validUntil = parts.getOrNull(1)?.trim()
                 }
 
-                trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
+                verbose && trimmed.contains("Fingerprint:") -> {
                     fingerprint = trimmed.substringAfter(":").trim()
                 }
 
-                trimmed.startsWith("Subject Public Key Algorithm:") -> {
+                verbose && trimmed.startsWith("Subject Public Key Algorithm:") -> {
                     val algStr = trimmed.substringAfter("Subject Public Key Algorithm:").trim()
 
                     keyAlgorithm = when {

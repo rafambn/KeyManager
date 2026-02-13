@@ -22,7 +22,7 @@ object KeyToolAPI {
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             try {
-                val parsed = KeyToolParser.parseListVerboseOutput(result.stdout)
+                val parsed = KeyToolParser.parseListOutput(result.stdout, verbose)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse keystore list output: ${e.message}", -1)

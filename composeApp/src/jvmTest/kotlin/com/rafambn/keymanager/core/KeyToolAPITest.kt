@@ -250,6 +250,155 @@ class KeyToolAPITest {
         assertEquals(EntryType.TRUSTED_CERT, keystoreInfo.entries[1].entryType)
     }
 
+    // ===== Non-Verbose List Tests =====
+
+    @Test
+    fun testListNonVerboseSuccess() = runTest {
+        val nonVerboseOutput = """
+            Keystore type: PKCS12
+            Keystore provider: SUN
+
+            Your keystore contains 2 entries
+
+            Alias name: mykey
+            Creation date: Jan 22, 2026
+            Entry type: PrivateKeyEntry
+            Certificate chain length: 1
+
+            Alias name: anothercert
+            Creation date: Jan 20, 2026
+            Entry type: trustedCertEntry
+        """.trimIndent()
+
+        setupMockFactory(nonVerboseOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = false)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+
+        // Verify basic fields are populated
+        assertEquals("PKCS12", keystoreInfo.type)
+        assertEquals(2, keystoreInfo.entryCount)
+        assertEquals("mykey", keystoreInfo.entries[0].alias)
+        assertEquals(EntryType.PRIVATE_KEY, keystoreInfo.entries[0].entryType)
+        assertEquals("Jan 22, 2026", keystoreInfo.entries[0].creationDate)
+        assertEquals(1, keystoreInfo.entries[0].certificateChainLength)
+
+        // Verify verbose-only fields are null
+        assertNull(keystoreInfo.entries[0].owner)
+        assertNull(keystoreInfo.entries[0].issuer)
+        assertNull(keystoreInfo.entries[0].algorithm)
+        assertNull(keystoreInfo.entries[0].fingerprint)
+    }
+
+    @Test
+    fun testListNonVerboseEmptyKeystore() = runTest {
+        val emptyKeystoreOutput = """
+            Keystore type: PKCS12
+            Keystore provider: SUN
+
+            Your keystore contains 0 entries
+        """.trimIndent()
+
+        setupMockFactory(emptyKeystoreOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = false)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+        assertEquals(0, keystoreInfo.entryCount)
+        assertEquals(0, keystoreInfo.entries.size)
+    }
+
+    @Test
+    fun testListNonVerboseSingleEntry() = runTest {
+        val singleEntryOutput = """
+            Keystore type: JKS
+            Keystore provider: SUN
+
+            Your keystore contains 1 entries
+
+            Alias name: singlekey
+            Creation date: Feb 01, 2026
+            Entry type: PrivateKeyEntry
+            Certificate chain length: 2
+        """.trimIndent()
+
+        setupMockFactory(singleEntryOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = false)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+        assertEquals(1, keystoreInfo.entries.size)
+        assertEquals("singlekey", keystoreInfo.entries[0].alias)
+        assertEquals(2, keystoreInfo.entries[0].certificateChainLength)
+    }
+
+    @Test
+    fun testListVerboseHasAllFields() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = true)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+
+        // Verify verbose-only fields are populated
+        assertNotNull(keystoreInfo.entries[0].owner)
+        assertNotNull(keystoreInfo.entries[0].issuer)
+        assertNotNull(keystoreInfo.entries[0].algorithm)
+        assertNotNull(keystoreInfo.entries[0].fingerprint)
+        assertEquals("RSA", keystoreInfo.entries[0].algorithm)
+        assertTrue(keystoreInfo.entries[0].fingerprint?.contains(":") ?: false)
+    }
+
+    @Test
+    fun testListNonVerboseMultipleEntriesMixedTypes() = runTest {
+        val mixedTypesOutput = """
+            Keystore type: PKCS12
+            Keystore provider: SUN
+
+            Your keystore contains 3 entries
+
+            Alias name: privatekey
+            Creation date: Jan 15, 2026
+            Entry type: PrivateKeyEntry
+            Certificate chain length: 1
+
+            Alias name: trustedcert
+            Creation date: Jan 16, 2026
+            Entry type: trustedCertEntry
+
+            Alias name: secretkey
+            Creation date: Jan 17, 2026
+            Entry type: SecretKeyEntry
+        """.trimIndent()
+
+        setupMockFactory(mixedTypesOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = false)
+
+        assertTrue(result is KeytoolResult.Success)
+        val keystoreInfo = result.data
+        assertEquals(3, keystoreInfo.entries.size)
+        assertEquals(EntryType.PRIVATE_KEY, keystoreInfo.entries[0].entryType)
+        assertEquals(EntryType.TRUSTED_CERT, keystoreInfo.entries[1].entryType)
+        assertEquals(EntryType.SECRET_KEY, keystoreInfo.entries[2].entryType)
+    }
+
+    @Test
+    fun testListNonVerboseParsingError() = runTest {
+        val malformedOutput = """
+            Keystore type: PKCS12
+            Your keystore contains invalid entries
+            Alias name: test
+            Entry type: InvalidEntryType
+        """.trimIndent()
+
+        setupMockFactory(malformedOutput, "", 0)
+        val result = KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = false)
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Failed to parse"))
+    }
+
     // ===== 2. GENKEYPAIR Function Tests =====
 
     @Test
