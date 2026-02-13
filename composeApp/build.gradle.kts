@@ -53,6 +53,7 @@ compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
         javaHome = jdk25Launcher.map { it.metadata.installationPath.asFile.absolutePath }.get()
+        jvmArgs += listOf("--enable-native-access=ALL-UNNAMED")
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -60,4 +61,8 @@ compose.desktop {
             packageVersion = "1.1.0"
         }
     }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs = (jvmArgs ?: emptyList()) + "--enable-native-access=ALL-UNNAMED"
 }
