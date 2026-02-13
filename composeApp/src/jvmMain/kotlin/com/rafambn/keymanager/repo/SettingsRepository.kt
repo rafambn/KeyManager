@@ -6,7 +6,7 @@ import com.russhwolf.settings.coroutines.getBooleanFlow
 import com.russhwolf.settings.coroutines.getIntFlow
 import com.russhwolf.settings.coroutines.getStringFlow
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
-import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -48,7 +48,7 @@ class SettingsRepository {
             keystoreType = keystoreType
         )
 
-        val mutableList = recentKeystores.last().toMutableList()
+        val mutableList = recentKeystores.first().toMutableList()
         mutableList.removeAll { it.path == path }
         mutableList.add(0, newRecent)
         val trimmedList = mutableList.take(MAX_RECENT_KEYSTORES)
@@ -56,7 +56,7 @@ class SettingsRepository {
     }
 
     suspend fun removeRecentKeystore(path: String) {
-        val currentList = recentKeystores.last().toMutableList()
+        val currentList = recentKeystores.first().toMutableList()
         currentList.removeAll { it.path == path }
         saveRecentKeystores(currentList)
     }
