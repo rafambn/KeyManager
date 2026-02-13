@@ -300,7 +300,15 @@ enum class SignatureAlgorithm(
          * Get all signature algorithms compatible with a given key algorithm
          */
         fun compatibleWith(keyAlgorithm: KeyAlgorithm): List<SignatureAlgorithm> {
-            return entries.filter { it.keyAlgorithmFamily == keyAlgorithm.cliName }
+            val family = when (keyAlgorithm) {
+                KeyAlgorithm.RSA, KeyAlgorithm.RSA_PSS -> "RSA"
+                KeyAlgorithm.EC -> "EC"
+                KeyAlgorithm.DSA -> "DSA"
+                KeyAlgorithm.ED25519, KeyAlgorithm.ED448 -> "EdDSA"
+                KeyAlgorithm.ML_DSA_44, KeyAlgorithm.ML_DSA_65, KeyAlgorithm.ML_DSA_87 -> "ML-DSA"
+                else -> keyAlgorithm.cliName
+            }
+            return entries.filter { it.keyAlgorithmFamily == family }
         }
 
         /**

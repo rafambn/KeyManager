@@ -61,8 +61,11 @@ class KeyToolAPITest {
         }
     }
 
-    private fun setupMockFactory(stdout: String, stderr: String = "", exitCode: Int = 0) {
-        KeyToolExecutor.processFactory = { _: List<String> ->
+    private var capturedCommand: List<String>? = null
+
+    private fun setupMockFactory(stdout: String = "", stderr: String = "", exitCode: Int = 0) {
+        KeyToolExecutor.processFactory = { command: List<String> ->
+            capturedCommand = command
             createMockProcess(stdout, stderr, exitCode)
         }
     }
@@ -897,15 +900,18 @@ class KeyToolAPITest {
     }
 
     @Test
-    fun testGenKeyPairErrorConflictingOptions() = runTest {
-        setupMockFactory("", "keytool error: Cannot specify both -groupname and -keysize", 1)
+    fun testGenKeyPairEcCurveTakesPrecedenceOverKeySize() = runTest {
+        setupMockFactory()
         val result = KeyToolAPI.genKeyPair(
             File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
             "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, keySize = 256, ecCurve = ECCurve.P256
         )
 
-        assertTrue(result is KeytoolResult.Error)
-        assertTrue(result.message.contains("Cannot specify both"))
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-groupname"))
+        assertTrue(cmd.contains("secp256r1"))
+        assertFalse(cmd.contains("-keysize"))
     }
 
     @Test
@@ -1147,5 +1153,106 @@ class KeyToolAPITest {
 
         assertTrue(result is KeytoolResult.Error)
         assertTrue(result.message.contains("Failed to parse"))
+    }
+
+    // ===== genKeyPair CLI arg generation tests =====
+
+    @Test
+    fun testGenKeyPairWithEcCurveAddsGroupname() = runTest {
+        setupMockFactory()
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, ecCurve = ECCurve.P256
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        val groupIdx = cmd.indexOf("-groupname")
+        assertTrue(groupIdx >= 0)
+        assertEquals("secp256r1", cmd[groupIdx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithEcCurveDoesNotAddKeysize() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, ecCurve = ECCurve.P384
+        )
+
+        val cmd = capturedCommand!!
+        assertFalse(cmd.contains("-keysize"))
+    }
+
+    @Test
+    fun testGenKeyPairEdDSANoKeysize() = runTest {
+        setupMockFactory()
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.ED25519
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        assertFalse(cmd.contains("-keysize"))
+        assertTrue(cmd.contains("Ed25519"))
+    }
+
+    @Test
+    fun testGenKeyPairMlDsaNoKeysize() = runTest {
+        setupMockFactory()
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.ML_DSA_44
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        assertFalse(cmd.contains("-keysize"))
+    }
+
+    @Test
+    fun testGenKeyPairRsaAddsKeysize() = runTest {
+        setupMockFactory()
+        val result = KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.RSA, keySize = 4096
+        )
+
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        val keysizeIdx = cmd.indexOf("-keysize")
+        assertTrue(keysizeIdx >= 0)
+        assertEquals("4096", cmd[keysizeIdx + 1])
+        assertFalse(cmd.contains("-groupname"))
+    }
+
+    @Test
+    fun testGenKeyPairEcCurveP521DefaultsSha512() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, keyAlgorithm = KeyAlgorithm.EC, ecCurve = ECCurve.P521
+        )
+
+        val cmd = capturedCommand!!
+        val sigalgIdx = cmd.indexOf("-sigalg")
+        assertTrue(sigalgIdx >= 0)
+        assertEquals("SHA512withECDSA", cmd[sigalgIdx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairExplicitSigAlgPassedThrough() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365,
+            keyAlgorithm = KeyAlgorithm.RSA, signatureAlgorithm = SignatureAlgorithm.SHA512_WITH_RSA
+        )
+
+        val cmd = capturedCommand!!
+        val sigalgIdx = cmd.indexOf("-sigalg")
+        assertTrue(sigalgIdx >= 0)
+        assertEquals("SHA512withRSA", cmd[sigalgIdx + 1])
     }
 }

@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import com.rafambn.keymanager.keytool.KeytoolResult
 import com.rafambn.keymanager.keytool.KeyToolAPI
+import com.rafambn.keymanager.keytool.enums.ECCurve
 import com.rafambn.keymanager.keytool.enums.EntryType
+import com.rafambn.keymanager.keytool.enums.KeyAlgorithm
+import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
 import com.rafambn.keymanager.keytool.model.KeyInfo
 import com.rafambn.keymanager.keytool.model.KeystoreSession
 import com.rafambn.keymanager.repo.SettingsRepository
@@ -377,7 +380,16 @@ class AppViewModel(
         }
     }
 
-    fun createKey(alias: String, dn: String, validityDays: Int, keyPassword: String? = null) {
+    fun createKey(
+        alias: String,
+        dn: String,
+        validityDays: Int,
+        keyAlgorithm: KeyAlgorithm = KeyAlgorithm.RSA,
+        keySize: Int? = null,
+        signatureAlgorithm: SignatureAlgorithm? = null,
+        ecCurve: ECCurve? = null,
+        keyPassword: String? = null
+    ) {
         val session = _state.value.selectedSession ?: return
         val storePassword = session.storePassword ?: return
         val effectiveKeyPassword = keyPassword ?: storePassword
@@ -389,7 +401,11 @@ class AppViewModel(
                 alias = alias,
                 keypass = effectiveKeyPassword,
                 dname = dn,
-                validity = validityDays
+                validity = validityDays,
+                keyAlgorithm = keyAlgorithm,
+                keySize = keySize,
+                signatureAlgorithm = signatureAlgorithm,
+                ecCurve = ecCurve
             )) {
                 is KeytoolResult.Success -> {
 

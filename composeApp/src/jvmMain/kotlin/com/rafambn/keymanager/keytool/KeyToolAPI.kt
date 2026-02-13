@@ -46,28 +46,35 @@ object KeyToolAPI {
         ecCurve: ECCurve? = null
     ): KeytoolResult<Unit> {
 
-        val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-
-        if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
-            return KeytoolResult.Error(
-                "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
-                -1
-            )
-        }
-
-        val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, finalKeySize)
         val args = mutableListOf(
             "-genkeypair",
             "-alias", alias,
             "-dname", dname,
             "-validity", validity.toString(),
             "-keyalg", keyAlgorithm.cliName,
-            "-keysize", finalKeySize.toString(),
-            "-sigalg", finalSigAlg.cliName,
             "-keystore", keystore.absolutePath,
             "-storepass", storepass,
             "-keypass", keypass
         )
+
+        if (ecCurve != null) {
+            args.addAll(listOf("-groupname", ecCurve.cliName))
+        } else if (keyAlgorithm.defaultKeySize != -1 &&
+            keyAlgorithm.supportedKeySizes.first != keyAlgorithm.supportedKeySizes.last
+        ) {
+            val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
+            if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
+                return KeytoolResult.Error(
+                    "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
+                    -1
+                )
+            }
+            args.addAll(listOf("-keysize", finalKeySize.toString()))
+        }
+
+        val effectiveKeySize = ecCurve?.bitLength ?: keySize ?: keyAlgorithm.defaultKeySize
+        val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, effectiveKeySize)
+        args.addAll(listOf("-sigalg", finalSigAlg.cliName))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)

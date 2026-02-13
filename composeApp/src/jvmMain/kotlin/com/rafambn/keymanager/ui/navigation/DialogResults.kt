@@ -1,10 +1,21 @@
 package com.rafambn.keymanager.ui.navigation
 
+import com.rafambn.keymanager.keytool.enums.ECCurve
+import com.rafambn.keymanager.keytool.enums.KeyAlgorithm
+import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
 import java.io.File
 
 sealed interface DialogResult {
     data class UnlockKeystore(val sessionId: String, val password: String) : DialogResult
-    data class CreateKey(val alias: String, val dn: String, val validity: Int) : DialogResult
+    data class CreateKey(
+        val alias: String,
+        val dn: String,
+        val validity: Int,
+        val keyAlgorithm: KeyAlgorithm,
+        val keySize: Int?,
+        val signatureAlgorithm: SignatureAlgorithm?,
+        val ecCurve: ECCurve?
+    ) : DialogResult
     data class Rename(val oldAlias: String, val newAlias: String) : DialogResult
     data class Delete(val alias: String) : DialogResult
     data class Move(val alias: String, val targetFile: File, val targetPassword: String) : DialogResult
