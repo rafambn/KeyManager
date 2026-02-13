@@ -58,7 +58,7 @@ jobs:
             artifact-name: keymanager-windows-x64
             artifact-path: composeApp/build/compose/binaries/main/msi/*.msi
 
-          - os: macos-13
+          - os: macos-15-intel
             task: packageDmg
             name: macOS x64
             artifact-name: keymanager-macos-x64
@@ -74,6 +74,12 @@ jobs:
             task: packageDeb
             name: Linux x64
             artifact-name: keymanager-linux-x64
+            artifact-path: composeApp/build/compose/binaries/main/deb/*.deb
+
+          - os: ubuntu-24.04-arm
+            task: packageDeb
+            name: Linux ARM64
+            artifact-name: keymanager-linux-arm64
             artifact-path: composeApp/build/compose/binaries/main/deb/*.deb
 
     steps:
