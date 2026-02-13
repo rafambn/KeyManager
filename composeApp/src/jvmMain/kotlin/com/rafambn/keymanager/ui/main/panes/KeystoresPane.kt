@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
@@ -65,7 +66,7 @@ fun KeystoresPane(
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = { showSortMenu = true }) {
                 Icon(
-                    imageVector = Icons.Default.Sort,
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
                     contentDescription = stringResource(Res.string.action_sort),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
