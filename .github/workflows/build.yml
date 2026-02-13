@@ -53,28 +53,34 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            task: packageMsi
+            task: packageReleaseMsi
             name: Windows x64
             artifact-name: keymanager-windows-x64
-            artifact-path: composeApp/build/compose/binaries/main/msi/*.msi
+            artifact-path: composeApp/build/compose/binaries/main-release/msi/*.msi
 
-          - os: macos-13
-            task: packageDmg
+          - os: macos-15-intel
+            task: packageReleaseDmg
             name: macOS x64
             artifact-name: keymanager-macos-x64
-            artifact-path: composeApp/build/compose/binaries/main/dmg/*.dmg
+            artifact-path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
 
           - os: macos-latest
-            task: packageDmg
+            task: packageReleaseDmg
             name: macOS ARM64
             artifact-name: keymanager-macos-arm64
-            artifact-path: composeApp/build/compose/binaries/main/dmg/*.dmg
+            artifact-path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
 
           - os: ubuntu-latest
-            task: packageDeb
+            task: packageReleaseDeb
             name: Linux x64
             artifact-name: keymanager-linux-x64
-            artifact-path: composeApp/build/compose/binaries/main/deb/*.deb
+            artifact-path: composeApp/build/compose/binaries/main-release/deb/*.deb
+
+          - os: ubuntu-24.04-arm
+            task: packageReleaseDeb
+            name: Linux ARM64
+            artifact-name: keymanager-linux-arm64
+            artifact-path: composeApp/build/compose/binaries/main-release/deb/*.deb
 
     steps:
       - name: Checkout code
