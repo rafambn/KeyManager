@@ -6,6 +6,7 @@ import com.rafambn.keymanager.keytool.model.CertificateInfo
 import com.rafambn.keymanager.keytool.model.CrlInfo
 import com.rafambn.keymanager.keytool.model.KeystoreEntry
 import com.rafambn.keymanager.keytool.model.KeystoreInfo
+import com.rafambn.keymanager.keytool.model.TlsInfo
 
 internal object KeyToolParser {
     internal fun parseListOutput(output: String, verbose: Boolean = true): KeystoreInfo {
@@ -268,5 +269,35 @@ internal object KeyToolParser {
             throw IllegalArgumentException("Missing critical CRL fields: issuer=$issuer, thisUpdate=$thisUpdate")
         }
         return CrlInfo(issuer, thisUpdate, nextUpdate, revokedCerts)
+    }
+
+    internal fun parseTlsInfoOutput(output: String): TlsInfo {
+        val lines = output.lines()
+        val protocols = mutableListOf<String>()
+        val cipherSuites = mutableListOf<String>()
+
+        var section = "" // "protocols" or "ciphers"
+        for (line in lines) {
+            val trimmed = line.trim()
+            when {
+                trimmed.startsWith("Enabled Protocols") -> {
+                    section = "protocols"
+                }
+                trimmed.startsWith("Enabled Cipher Suites") -> {
+                    section = "ciphers"
+                }
+                trimmed.startsWith("---") || trimmed.isEmpty() -> {
+                    // separator or blank line, skip
+                }
+                section == "protocols" -> {
+                    protocols.add(trimmed)
+                }
+                section == "ciphers" -> {
+                    cipherSuites.add(trimmed)
+                }
+            }
+        }
+
+        return TlsInfo(protocols, cipherSuites)
     }
 }

@@ -1288,6 +1288,659 @@ class KeyToolAPITest {
         assertFalse(cmd.contains("-storetype"), "-storetype flag should not be present by default")
     }
 
+    // ===== NEW PARAMETER TESTS =====
+
+    // --- list() new params ---
+
+    @Test
+    fun testListWithRfcFlag() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, rfc = true)
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-rfc"), "-rfc flag should be present")
+        assertFalse(cmd.contains("-v"), "-v flag should not be present when rfc=true")
+    }
+
+    @Test
+    fun testListWithRfcOverridesVerbose() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, verbose = true, rfc = true)
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-rfc"), "-rfc should be present")
+        assertFalse(cmd.contains("-v"), "-v should not be present when rfc=true even with verbose=true")
+    }
+
+    @Test
+    fun testListWithCacerts() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, cacerts = true)
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"), "-cacerts flag should be present")
+        assertFalse(cmd.contains("-keystore"), "-keystore should not be present when cacerts=true")
+    }
+
+    // --- genKeyPair() new params ---
+
+    @Test
+    fun testGenKeyPairWithSingleExt() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, ext = listOf("san=dns:example.com")
+        )
+
+        val cmd = capturedCommand!!
+        val extIdx = cmd.indexOf("-ext")
+        assertTrue(extIdx >= 0, "-ext flag should be present")
+        assertEquals("san=dns:example.com", cmd[extIdx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithMultipleExt() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365,
+            ext = listOf("san=dns:a.com", "bc=ca:true")
+        )
+
+        val cmd = capturedCommand!!
+        val extIndices = cmd.mapIndexedNotNull { i, v -> if (v == "-ext") i else null }
+        assertEquals(2, extIndices.size, "Should have two -ext flags")
+        assertEquals("san=dns:a.com", cmd[extIndices[0] + 1])
+        assertEquals("bc=ca:true", cmd[extIndices[1] + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithStartdate() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, startdate = "2025/06/01"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-startdate")
+        assertTrue(idx >= 0, "-startdate flag should be present")
+        assertEquals("2025/06/01", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0, "-storetype flag should be present")
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithSigner() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, signer = "myca"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-signer")
+        assertTrue(idx >= 0, "-signer flag should be present")
+        assertEquals("myca", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithSignerKeypass() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365, signerKeypass = "capass"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-signerkeypass")
+        assertTrue(idx >= 0, "-signerkeypass flag should be present")
+        assertEquals("capass", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenKeyPairWithAllNewParams() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genKeyPair(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            "CN=Test, O=TestOrg, C=US", 365,
+            ext = listOf("san=dns:example.com"),
+            startdate = "2025/06/01",
+            storetype = "JKS",
+            signer = "myca",
+            signerKeypass = "capass"
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-ext"))
+        assertTrue(cmd.contains("-startdate"))
+        assertTrue(cmd.contains("-storetype"))
+        assertTrue(cmd.contains("-signer"))
+        assertTrue(cmd.contains("-signerkeypass"))
+    }
+
+    // --- genSecKey() new params ---
+
+    @Test
+    fun testGenSecKeyWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genSecKey(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            KeyAlgorithm.AES, 256, storetype = "PKCS12"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0, "-storetype flag should be present")
+        assertEquals("PKCS12", cmd[idx + 1])
+    }
+
+    // --- genCert() new params ---
+
+    @Test
+    fun testGenCertWithExt() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), File("/tmp/cert.pem"),
+            ext = listOf("ku=digitalSignature")
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-ext")
+        assertTrue(idx >= 0)
+        assertEquals("ku=digitalSignature", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenCertWithRfc() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), File("/tmp/cert.pem"), rfc = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-rfc"))
+    }
+
+    @Test
+    fun testGenCertWithDname() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), File("/tmp/cert.pem"), dname = "CN=Override"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-dname")
+        assertTrue(idx >= 0)
+        assertEquals("CN=Override", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenCertWithStartdate() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), File("/tmp/cert.pem"), startdate = "+30d"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-startdate")
+        assertTrue(idx >= 0)
+        assertEquals("+30d", cmd[idx + 1])
+    }
+
+    @Test
+    fun testGenCertWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.genCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), File("/tmp/cert.pem"), storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    // --- certReq() new params ---
+
+    @Test
+    fun testCertReqWithExt() = runTest {
+        setupMockFactory()
+        KeyToolAPI.certReq(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), ext = listOf("san=dns:a.com")
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-ext")
+        assertTrue(idx >= 0)
+        assertEquals("san=dns:a.com", cmd[idx + 1])
+    }
+
+    @Test
+    fun testCertReqWithDname() = runTest {
+        setupMockFactory()
+        KeyToolAPI.certReq(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), dname = "CN=Override"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-dname")
+        assertTrue(idx >= 0)
+        assertEquals("CN=Override", cmd[idx + 1])
+    }
+
+    @Test
+    fun testCertReqWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.certReq(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "keypass123",
+            File("/tmp/req.csr"), storetype = "PKCS12"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("PKCS12", cmd[idx + 1])
+    }
+
+    // --- exportCert() new params ---
+
+    @Test
+    fun testExportCertWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.exportCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            File("/tmp/cert.pem"), storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testExportCertWithCacerts() = runTest {
+        setupMockFactory()
+        KeyToolAPI.exportCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            File("/tmp/cert.pem"), cacerts = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"))
+        assertFalse(cmd.contains("-keystore"))
+    }
+
+    // --- importCert() new params ---
+
+    @Test
+    fun testImportCertWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            File("/tmp/cert.pem"), storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportCertWithCacerts() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importCert(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            File("/tmp/cert.pem"), cacerts = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"))
+        assertFalse(cmd.contains("-keystore"))
+    }
+
+    // --- importKeystore() new params ---
+
+    @Test
+    fun testImportKeystoreWithSrcStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, null, null,
+            File("/tmp/dest.jks"), "destpass",
+            srcStoretype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-srcstoretype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportKeystoreWithDestStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, null, null,
+            File("/tmp/dest.jks"), "destpass",
+            destStoretype = "PKCS12"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-deststoretype")
+        assertTrue(idx >= 0)
+        assertEquals("PKCS12", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportKeystoreWithSrcProvidername() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, null, null,
+            File("/tmp/dest.jks"), "destpass",
+            srcProvidername = "SUN"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-srcprovidername")
+        assertTrue(idx >= 0)
+        assertEquals("SUN", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportKeystoreWithDestProvidername() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, null, null,
+            File("/tmp/dest.jks"), "destpass",
+            destProvidername = "SunJSSE"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-destprovidername")
+        assertTrue(idx >= 0)
+        assertEquals("SunJSSE", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportKeystoreWithAllNewParams() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importKeystore(
+            File("/tmp/source.jks"), TEST_PASSWORD, null, null,
+            File("/tmp/dest.jks"), "destpass",
+            srcStoretype = "JKS",
+            destStoretype = "PKCS12",
+            srcProvidername = "SUN",
+            destProvidername = "SunJSSE"
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-srcstoretype"))
+        assertTrue(cmd.contains("-deststoretype"))
+        assertTrue(cmd.contains("-srcprovidername"))
+        assertTrue(cmd.contains("-destprovidername"))
+    }
+
+    // --- importPass() new params ---
+
+    @Test
+    fun testImportPassWithKeyAlgorithm() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importPass(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "mypassword",
+            keyAlgorithm = KeyAlgorithm.AES
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-keyalg")
+        assertTrue(idx >= 0)
+        assertEquals("AES", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportPassWithKeySize() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importPass(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "mypassword",
+            keySize = 256
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-keysize")
+        assertTrue(idx >= 0)
+        assertEquals("256", cmd[idx + 1])
+    }
+
+    @Test
+    fun testImportPassWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.importPass(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "mypassword",
+            storetype = "PKCS12"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("PKCS12", cmd[idx + 1])
+    }
+
+    // --- delete() new params ---
+
+    @Test
+    fun testDeleteWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.delete(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testDeleteWithCacerts() = runTest {
+        setupMockFactory()
+        KeyToolAPI.delete(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS,
+            cacerts = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"))
+        assertFalse(cmd.contains("-keystore"))
+    }
+
+    // --- changeAlias() new params ---
+
+    @Test
+    fun testChangeAliasWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.changeAlias(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "newalias", "keypass",
+            storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testChangeAliasWithCacerts() = runTest {
+        setupMockFactory()
+        KeyToolAPI.changeAlias(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "newalias", "keypass",
+            cacerts = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"))
+        assertFalse(cmd.contains("-keystore"))
+    }
+
+    // --- keyPasswd() new params ---
+
+    @Test
+    fun testKeyPasswdWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.keyPasswd(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, TEST_ALIAS, "oldpass", "newpass",
+            storetype = "PKCS12"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("PKCS12", cmd[idx + 1])
+    }
+
+    // --- storePasswd() new params ---
+
+    @Test
+    fun testStorePasswdWithStoretype() = runTest {
+        setupMockFactory()
+        KeyToolAPI.storePasswd(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, "newpass",
+            storetype = "JKS"
+        )
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-storetype")
+        assertTrue(idx >= 0)
+        assertEquals("JKS", cmd[idx + 1])
+    }
+
+    @Test
+    fun testStorePasswdWithCacerts() = runTest {
+        setupMockFactory()
+        KeyToolAPI.storePasswd(
+            File(TEST_KEYSTORE_PATH), TEST_PASSWORD, "newpass",
+            cacerts = true
+        )
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-cacerts"))
+        assertFalse(cmd.contains("-keystore"))
+    }
+
+    // --- printCert() new params ---
+
+    @Test
+    fun testPrintCertWithRfc() = runTest {
+        setupMockFactory(validCertificateOutput)
+        KeyToolAPI.printCert(file = File(TEST_CERT_PATH), rfc = true)
+
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-rfc"))
+        assertFalse(cmd.contains("-v"))
+    }
+
+    @Test
+    fun testPrintCertWithSslserver() = runTest {
+        setupMockFactory(validCertificateOutput)
+        KeyToolAPI.printCert(sslserver = "example.com")
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-sslserver")
+        assertTrue(idx >= 0)
+        assertEquals("example.com", cmd[idx + 1])
+        assertFalse(cmd.contains("-file"))
+    }
+
+    @Test
+    fun testPrintCertWithJarfile() = runTest {
+        setupMockFactory(validCertificateOutput)
+        KeyToolAPI.printCert(jarfile = File("/tmp/app.jar"))
+
+        val cmd = capturedCommand!!
+        val idx = cmd.indexOf("-jarfile")
+        assertTrue(idx >= 0)
+        assertEquals("/tmp/app.jar", cmd[idx + 1])
+        assertFalse(cmd.contains("-file"))
+    }
+
+    @Test
+    fun testPrintCertMutualExclusionError() = runTest {
+        setupMockFactory(validCertificateOutput)
+        val result = KeyToolAPI.printCert(
+            file = File(TEST_CERT_PATH),
+            sslserver = "example.com"
+        )
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Exactly one"))
+    }
+
+    @Test
+    fun testPrintCertNoSourceError() = runTest {
+        setupMockFactory(validCertificateOutput)
+        val result = KeyToolAPI.printCert()
+
+        assertTrue(result is KeytoolResult.Error)
+        assertTrue(result.message.contains("Exactly one"))
+    }
+
+    // --- showInfoTls() ---
+
+    @Test
+    fun testShowInfoTlsSuccess() = runTest {
+        val tlsOutput = """
+            Enabled Protocols
+            -----------------
+            TLSv1.3
+            TLSv1.2
+
+            Enabled Cipher Suites
+            ---------------------
+            TLS_AES_256_GCM_SHA384
+            TLS_AES_128_GCM_SHA256
+        """.trimIndent()
+
+        setupMockFactory(tlsOutput)
+        val result = KeyToolAPI.showInfoTls()
+
+        assertTrue(result is KeytoolResult.Success)
+        val cmd = capturedCommand!!
+        assertTrue(cmd.contains("-showinfo"))
+        assertTrue(cmd.contains("-tls"))
+        assertTrue(result.data.enabledProtocols.contains("TLSv1.3"))
+        assertTrue(result.data.enabledCipherSuites.contains("TLS_AES_256_GCM_SHA384"))
+    }
+
+    // --- version() ---
+
+    @Test
+    fun testVersionReturnsNonEmpty() {
+        val version = KeyToolAPI.version()
+        assertTrue(version.isNotEmpty())
+        assertNotEquals("unknown", version)
+    }
+
     @Test
     fun testGenKeyPairExplicitSigAlgPassedThrough() = runTest {
         setupMockFactory()
