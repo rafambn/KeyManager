@@ -517,6 +517,30 @@ class KeyToolAPIIntegrationTests {
     }
 
     @Test
+    fun test_31b_list_with_alias_filter() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key2", KEY_PASSWORD, "CN=Other, O=OtherOrg, C=BR", 365)
+
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, verbose = true, alias = "key1")
+
+        assertTrue(result is KeytoolResult.Success, "List with alias filter should succeed")
+        val entries = result.data.entries
+        assertEquals(1, entries.size, "Should return only the filtered alias")
+        assertEquals("key1", entries[0].alias)
+    }
+
+    @Test
+    fun test_31c_list_with_alias_nonexistent() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, verbose = true, alias = "nonexistent")
+
+        assertTrue(result is KeytoolResult.Error, "List with non-existent alias should fail")
+    }
+
+    @Test
     fun test_32_list_with_special_chars_in_dn() = runTest {
         val ks = newKeystore()
         // DN with special characters (commas, equals signs in values)

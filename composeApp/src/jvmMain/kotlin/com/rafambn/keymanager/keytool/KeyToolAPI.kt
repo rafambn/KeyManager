@@ -15,10 +15,14 @@ object KeyToolAPI {
     suspend fun list(
         keystore: File,
         storepass: String,
-        verbose: Boolean = true
+        verbose: Boolean = true,
+        alias: String? = null,
+        storetype: String? = null
     ): KeytoolResult<KeystoreInfo> {
         val args = mutableListOf("-list", "-keystore", keystore.absolutePath, "-storepass", storepass)
         if (verbose) args.add("-v")
+        if (alias != null) args.addAll(listOf("-alias", alias))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             try {

@@ -1242,6 +1242,53 @@ class KeyToolAPITest {
     }
 
     @Test
+    fun testListWithAlias() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, alias = "mykey")
+
+        val cmd = capturedCommand!!
+        val aliasIdx = cmd.indexOf("-alias")
+        assertTrue(aliasIdx >= 0, "-alias flag should be present")
+        assertEquals("mykey", cmd[aliasIdx + 1])
+    }
+
+    @Test
+    fun testListWithStoretype() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, storetype = "JKS")
+
+        val cmd = capturedCommand!!
+        val storetypeIdx = cmd.indexOf("-storetype")
+        assertTrue(storetypeIdx >= 0, "-storetype flag should be present")
+        assertEquals("JKS", cmd[storetypeIdx + 1])
+    }
+
+    @Test
+    fun testListWithAliasAndStoretype() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD, alias = "mykey", storetype = "PKCS12")
+
+        val cmd = capturedCommand!!
+        val aliasIdx = cmd.indexOf("-alias")
+        assertTrue(aliasIdx >= 0, "-alias flag should be present")
+        assertEquals("mykey", cmd[aliasIdx + 1])
+
+        val storetypeIdx = cmd.indexOf("-storetype")
+        assertTrue(storetypeIdx >= 0, "-storetype flag should be present")
+        assertEquals("PKCS12", cmd[storetypeIdx + 1])
+    }
+
+    @Test
+    fun testListWithoutAliasOrStoretype() = runTest {
+        setupMockFactory(validKeystoreListOutput, "", 0)
+        KeyToolAPI.list(File(TEST_KEYSTORE_PATH), TEST_PASSWORD)
+
+        val cmd = capturedCommand!!
+        assertFalse(cmd.contains("-alias"), "-alias flag should not be present by default")
+        assertFalse(cmd.contains("-storetype"), "-storetype flag should not be present by default")
+    }
+
+    @Test
     fun testGenKeyPairExplicitSigAlgPassedThrough() = runTest {
         setupMockFactory()
         KeyToolAPI.genKeyPair(

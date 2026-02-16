@@ -39,8 +39,12 @@ internal object KeyToolParser {
             System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
         }
 
-        if (type.isEmpty() || type == "Unknown") {
+        if ((type.isEmpty() || type == "Unknown") && entries.isEmpty()) {
             throw IllegalArgumentException("Could not determine keystore type from output")
+        }
+
+        if (entryCount == 0 && entries.isNotEmpty()) {
+            entryCount = entries.size
         }
 
         entries.forEach { entry ->
