@@ -57,6 +57,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.8.2")
+            configurationFiles.from(project.file("compose-desktop.pro"))
         }
 
         nativeDistributions {
