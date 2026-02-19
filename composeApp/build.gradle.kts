@@ -44,6 +44,12 @@ kotlin {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
+}
+
 
 val jdk25Launcher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(25))
@@ -52,7 +58,7 @@ val jdk25Launcher = javaToolchains.launcherFor {
 compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
-        javaHome = jdk25Launcher.map { it.metadata.installationPath.asFile.absolutePath }.get()
+        javaHome = jdk25Launcher.get().metadata.installationPath.asFile.absolutePath
         jvmArgs += listOf("--enable-native-access=ALL-UNNAMED")
 
         buildTypes.release.proguard {
