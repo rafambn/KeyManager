@@ -55,6 +55,10 @@ compose.desktop {
         javaHome = jdk25Launcher.map { it.metadata.installationPath.asFile.absolutePath }.get()
         jvmArgs += listOf("--enable-native-access=ALL-UNNAMED")
 
+        buildTypes.release.proguard {
+            version.set("7.8.2")
+        }
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.rafambn.keymanager"
