@@ -23,14 +23,12 @@ import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
  *
  * Password: testpass123
  */
-class KeyToolAPIIntegrationTests {
+private const val TEST_PASSWORD = "testpass123"
+private const val KEY_PASSWORD = "keypass456"
+private const val DN = "CN=Test, O=TestOrg, C=US"
+private val testDir = File(System.getProperty("java.io.tmpdir"), "keytool_tests_${System.currentTimeMillis()}")
 
-    companion object {
-        private const val TEST_PASSWORD = "testpass123"
-        private const val KEY_PASSWORD = "keypass456"
-        private const val DN = "CN=Test, O=TestOrg, C=US"
-        private val testDir = File(System.getProperty("java.io.tmpdir"), "keytool_tests_${System.currentTimeMillis()}")
-    }
+class KeyToolAPIIntegrationTests {
 
     @BeforeTest
     fun setUp() {
