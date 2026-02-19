@@ -59,7 +59,7 @@ compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
         javaHome = jdk25Launcher.get().metadata.installationPath.asFile.absolutePath
-        jvmArgs += listOf("--enable-native-access=ALL-UNNAMED")
+        jvmArgs += listOf("--enable-native-access=ALL-UNNAMED", "-Xverify:none")
 
         buildTypes.release.proguard {
             version.set("7.8.2")
@@ -75,5 +75,5 @@ compose.desktop {
 }
 
 tasks.withType<JavaExec>().configureEach {
-    jvmArgs = (jvmArgs ?: emptyList()) + "--enable-native-access=ALL-UNNAMED"
+    jvmArgs = (jvmArgs ?: emptyList()) + listOf("--enable-native-access=ALL-UNNAMED", "-Xverify:none")
 }
