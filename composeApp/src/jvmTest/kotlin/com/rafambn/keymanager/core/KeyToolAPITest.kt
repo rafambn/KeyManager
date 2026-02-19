@@ -12,12 +12,12 @@ import com.rafambn.keymanager.keytool.enums.EntryType
 import com.rafambn.keymanager.keytool.enums.KeyAlgorithm
 import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
 
-private const val TEST_KEYSTORE_PATH = "/tmp/test.jks"
-private const val TEST_PASSWORD = "testpass123"
-private const val TEST_ALIAS = "mykey"
-private const val TEST_CERT_PATH = "/tmp/cert.pem"
-
 class KeyToolAPITest {
+
+    private val TEST_KEYSTORE_PATH = "/tmp/test.jks"
+    private val TEST_PASSWORD = "testpass123"
+    private val TEST_ALIAS = "mykey"
+    private val TEST_CERT_PATH = "/tmp/cert.pem"
 
     private val originalFactory = KeyToolExecutor.processFactory
 
