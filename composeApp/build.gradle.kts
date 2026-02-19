@@ -9,6 +9,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(25)
+
     jvm()
 
     sourceSets {
@@ -43,14 +45,24 @@ kotlin {
 }
 
 
+val jdk25Launcher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(25))
+}
+
 compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
+        javaHome = jdk25Launcher.map { it.metadata.installationPath.asFile.absolutePath }.get()
+        jvmArgs += listOf("--enable-native-access=ALL-UNNAMED")
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.rafambn.keymanager"
-            packageVersion = "1.0.0"
+            packageVersion = "1.1.0"
         }
     }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs = (jvmArgs ?: emptyList()) + "--enable-native-access=ALL-UNNAMED"
 }

@@ -129,10 +129,10 @@ fun NavigationRoot(
                 metadata = DialogSceneStrategy.dialog()
             ) {
                 CreateKeyScreen(
-                    onCreateKey = { alias, dn, validity ->
+                    onCreateKey = { alias, dn, validity, keyAlgorithm, keySize, signatureAlgorithm, ecCurve ->
                         resultStore.setResult(
                             "create_key",
-                            DialogResult.CreateKey(alias, dn, validity)
+                            DialogResult.CreateKey(alias, dn, validity, keyAlgorithm, keySize, signatureAlgorithm, ecCurve)
                         )
                         backStack.pop()
                     },

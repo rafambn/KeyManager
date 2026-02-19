@@ -6,9 +6,10 @@ import com.rafambn.keymanager.keytool.model.CertificateInfo
 import com.rafambn.keymanager.keytool.model.CrlInfo
 import com.rafambn.keymanager.keytool.model.KeystoreEntry
 import com.rafambn.keymanager.keytool.model.KeystoreInfo
+import com.rafambn.keymanager.keytool.model.TlsInfo
 
 internal object KeyToolParser {
-    internal fun parseListVerboseOutput(output: String): KeystoreInfo {
+    internal fun parseListOutput(output: String, verbose: Boolean = true): KeystoreInfo {
         val lines = output.lines()
 
         var type = "Unknown"
@@ -33,14 +34,18 @@ internal object KeyToolParser {
         }
 
         val entryBlocks = output.split(Regex("(?=Alias name:)")).filter { it.contains("Alias name:") }
-        val entries = entryBlocks.map { parseKeystoreEntry(it) }
+        val entries = entryBlocks.map { parseKeystoreEntry(it, verbose) }
 
         if (entries.size != entryCount && entryCount > 0) {
             System.err.println("Warning: Expected $entryCount entries but parsed ${entries.size}")
         }
 
-        if (type.isEmpty() || type == "Unknown") {
+        if ((type.isEmpty() || type == "Unknown") && entries.isEmpty()) {
             throw IllegalArgumentException("Could not determine keystore type from output")
+        }
+
+        if (entryCount == 0 && entries.isNotEmpty()) {
+            entryCount = entries.size
         }
 
         entries.forEach { entry ->
@@ -54,7 +59,7 @@ internal object KeyToolParser {
         return KeystoreInfo(type, provider, entryCount, entries)
     }
 
-    internal fun parseKeystoreEntry(block: String): KeystoreEntry {
+    internal fun parseKeystoreEntry(block: String, verbose: Boolean = true): KeystoreEntry {
         val lines = block.lines()
         var alias = ""
         var creationDate = ""
@@ -92,30 +97,30 @@ internal object KeyToolParser {
                     chainLength = trimmed.substringAfter("Certificate chain length:").trim().toIntOrNull()
                 }
 
-                trimmed.startsWith("Owner:") -> {
+                verbose && trimmed.startsWith("Owner:") -> {
                     owner = trimmed.substringAfter("Owner:").trim()
                 }
 
-                trimmed.startsWith("Issuer:") -> {
+                verbose && trimmed.startsWith("Issuer:") -> {
                     issuer = trimmed.substringAfter("Issuer:").trim()
                 }
 
-                trimmed.startsWith("Serial number:") -> {
+                verbose && trimmed.startsWith("Serial number:") -> {
                     serialNumber = trimmed.substringAfter("Serial number:").trim()
                 }
 
-                trimmed.startsWith("Valid from:") -> {
+                verbose && trimmed.startsWith("Valid from:") -> {
 
                     val parts = trimmed.substringAfter("Valid from:").split("until:")
                     validFrom = parts.getOrNull(0)?.trim()
                     validUntil = parts.getOrNull(1)?.trim()
                 }
 
-                trimmed.contains("SHA256:") || trimmed.contains("SHA-256:") -> {
+                verbose && trimmed.contains("Fingerprint:") -> {
                     fingerprint = trimmed.substringAfter(":").trim()
                 }
 
-                trimmed.startsWith("Subject Public Key Algorithm:") -> {
+                verbose && trimmed.startsWith("Subject Public Key Algorithm:") -> {
                     val algStr = trimmed.substringAfter("Subject Public Key Algorithm:").trim()
 
                     keyAlgorithm = when {
@@ -264,5 +269,35 @@ internal object KeyToolParser {
             throw IllegalArgumentException("Missing critical CRL fields: issuer=$issuer, thisUpdate=$thisUpdate")
         }
         return CrlInfo(issuer, thisUpdate, nextUpdate, revokedCerts)
+    }
+
+    internal fun parseTlsInfoOutput(output: String): TlsInfo {
+        val lines = output.lines()
+        val protocols = mutableListOf<String>()
+        val cipherSuites = mutableListOf<String>()
+
+        var section = "" // "protocols" or "ciphers"
+        for (line in lines) {
+            val trimmed = line.trim()
+            when {
+                trimmed.startsWith("Enabled Protocols") -> {
+                    section = "protocols"
+                }
+                trimmed.startsWith("Enabled Cipher Suites") -> {
+                    section = "ciphers"
+                }
+                trimmed.startsWith("---") || trimmed.isEmpty() -> {
+                    // separator or blank line, skip
+                }
+                section == "protocols" -> {
+                    protocols.add(trimmed)
+                }
+                section == "ciphers" -> {
+                    cipherSuites.add(trimmed)
+                }
+            }
+        }
+
+        return TlsInfo(protocols, cipherSuites)
     }
 }

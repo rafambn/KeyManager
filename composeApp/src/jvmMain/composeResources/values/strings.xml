@@ -140,6 +140,13 @@
     <string name="entries_count">entries</string>
     <string name="valid_until">Valid until: %1$s</string>
 
+    <!-- Crypto Settings -->
+    <string name="crypto_section_title">Cryptographic Settings</string>
+    <string name="key_algorithm_label">Key Algorithm</string>
+    <string name="key_size_label">Key Size (bits)</string>
+    <string name="signature_algorithm_label">Signature Algorithm</string>
+    <string name="ec_curve_label">EC Curve</string>
+
     <!-- Table headers   -->
     <string name="table_header_recent">Recent</string>
     <string name="table_header_open">Open</string>

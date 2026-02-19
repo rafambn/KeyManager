@@ -7,22 +7,42 @@ import com.rafambn.keymanager.keytool.model.CertRequestInfo
 import com.rafambn.keymanager.keytool.model.CertificateInfo
 import com.rafambn.keymanager.keytool.model.CrlInfo
 import com.rafambn.keymanager.keytool.model.KeystoreInfo
+import com.rafambn.keymanager.keytool.model.TlsInfo
 import java.io.File
 
 object KeyToolAPI {
+
+    private fun buildKeystoreArgs(keystore: File, storepass: String, cacerts: Boolean): List<String> {
+        return if (cacerts) {
+            listOf("-cacerts", "-storepass", storepass)
+        } else {
+            listOf("-keystore", keystore.absolutePath, "-storepass", storepass)
+        }
+    }
 
     // ===== 1. LIST → KeystoreInfo =====
     suspend fun list(
         keystore: File,
         storepass: String,
-        verbose: Boolean = true
+        verbose: Boolean = true,
+        alias: String? = null,
+        storetype: String? = null,
+        rfc: Boolean = false,
+        cacerts: Boolean = false
     ): KeytoolResult<KeystoreInfo> {
-        val args = mutableListOf("-list", "-keystore", keystore.absolutePath, "-storepass", storepass)
-        if (verbose) args.add("-v")
+        val args = mutableListOf("-list")
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
+        if (rfc) {
+            args.add("-rfc")
+        } else if (verbose) {
+            args.add("-v")
+        }
+        if (alias != null) args.addAll(listOf("-alias", alias))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             try {
-                val parsed = KeyToolParser.parseListVerboseOutput(result.stdout)
+                val parsed = KeyToolParser.parseListOutput(result.stdout, verbose && !rfc)
                 KeytoolResult.Success(parsed)
             } catch (e: Exception) {
                 KeytoolResult.Error("Failed to parse keystore list output: ${e.message}", -1)
@@ -43,31 +63,50 @@ object KeyToolAPI {
         keyAlgorithm: KeyAlgorithm = KeyAlgorithm.RSA,
         keySize: Int? = null,
         signatureAlgorithm: SignatureAlgorithm? = null,
-        ecCurve: ECCurve? = null
+        ecCurve: ECCurve? = null,
+        ext: List<String> = emptyList(),
+        startdate: String? = null,
+        storetype: String? = null,
+        signer: String? = null,
+        signerKeypass: String? = null
     ): KeytoolResult<Unit> {
 
-        val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
-
-        if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
-            return KeytoolResult.Error(
-                "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
-                -1
-            )
-        }
-
-        val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, finalKeySize)
         val args = mutableListOf(
             "-genkeypair",
             "-alias", alias,
             "-dname", dname,
             "-validity", validity.toString(),
             "-keyalg", keyAlgorithm.cliName,
-            "-keysize", finalKeySize.toString(),
-            "-sigalg", finalSigAlg.cliName,
             "-keystore", keystore.absolutePath,
             "-storepass", storepass,
             "-keypass", keypass
         )
+
+        if (ecCurve != null) {
+            args.addAll(listOf("-groupname", ecCurve.cliName))
+        } else if (keyAlgorithm.defaultKeySize != -1 &&
+            keyAlgorithm.supportedKeySizes.first != keyAlgorithm.supportedKeySizes.last
+        ) {
+            val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
+            if (!keyAlgorithm.isValidKeySize(finalKeySize)) {
+                return KeytoolResult.Error(
+                    "Key size $finalKeySize is not valid for ${keyAlgorithm.displayName} (valid range: ${keyAlgorithm.supportedKeySizes})",
+                    -1
+                )
+            }
+            args.addAll(listOf("-keysize", finalKeySize.toString()))
+        }
+
+        val effectiveKeySize = ecCurve?.bitLength ?: keySize ?: keyAlgorithm.defaultKeySize
+        val finalSigAlg = signatureAlgorithm ?: SignatureAlgorithm.selectDefault(keyAlgorithm, effectiveKeySize)
+        args.addAll(listOf("-sigalg", finalSigAlg.cliName))
+
+        ext.forEach { args.addAll(listOf("-ext", it)) }
+        if (startdate != null) args.addAll(listOf("-startdate", startdate))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
+        if (signer != null) args.addAll(listOf("-signer", signer))
+        if (signerKeypass != null) args.addAll(listOf("-signerkeypass", signerKeypass))
+
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -83,7 +122,8 @@ object KeyToolAPI {
         alias: String,
         keypass: String,
         keyAlgorithm: KeyAlgorithm,
-        keySize: Int? = null
+        keySize: Int? = null,
+        storetype: String? = null
     ): KeytoolResult<Unit> {
 
         val finalKeySize = keySize ?: keyAlgorithm.defaultKeySize
@@ -101,7 +141,7 @@ object KeyToolAPI {
                 -1
             )
         }
-        val args = listOf(
+        val args = mutableListOf(
             "-genseckey",
             "-alias", alias,
             "-keyalg", keyAlgorithm.cliName,
@@ -110,6 +150,7 @@ object KeyToolAPI {
             "-storepass", storepass,
             "-keypass", keypass
         )
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -127,7 +168,12 @@ object KeyToolAPI {
         infile: File,
         outfile: File,
         validity: Int? = null,
-        signatureAlgorithm: SignatureAlgorithm? = null
+        signatureAlgorithm: SignatureAlgorithm? = null,
+        ext: List<String> = emptyList(),
+        rfc: Boolean = false,
+        dname: String? = null,
+        startdate: String? = null,
+        storetype: String? = null
     ): KeytoolResult<Unit> {
         val args = mutableListOf(
             "-gencert",
@@ -146,6 +192,11 @@ object KeyToolAPI {
         if (signatureAlgorithm != null) {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
+        ext.forEach { args.addAll(listOf("-ext", it)) }
+        if (rfc) args.add("-rfc")
+        if (dname != null) args.addAll(listOf("-dname", dname))
+        if (startdate != null) args.addAll(listOf("-startdate", startdate))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -161,7 +212,10 @@ object KeyToolAPI {
         alias: String,
         keypass: String?,
         file: File,
-        signatureAlgorithm: SignatureAlgorithm? = null
+        signatureAlgorithm: SignatureAlgorithm? = null,
+        ext: List<String> = emptyList(),
+        dname: String? = null,
+        storetype: String? = null
     ): KeytoolResult<Unit> {
         val args = mutableListOf(
             "-certreq",
@@ -176,6 +230,9 @@ object KeyToolAPI {
         if (signatureAlgorithm != null) {
             args.addAll(listOf("-sigalg", signatureAlgorithm.cliName))
         }
+        ext.forEach { args.addAll(listOf("-ext", it)) }
+        if (dname != null) args.addAll(listOf("-dname", dname))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -190,18 +247,16 @@ object KeyToolAPI {
         storepass: String,
         alias: String,
         file: File,
-        rfc: Boolean = false
+        rfc: Boolean = false,
+        storetype: String? = null,
+        cacerts: Boolean = false
     ): KeytoolResult<Unit> {
-        val args = mutableListOf(
-            "-exportcert",
-            "-alias", alias,
-            "-file", file.absolutePath,
-            "-keystore", keystore.absolutePath,
-            "-storepass", storepass
-        )
+        val args = mutableListOf("-exportcert", "-alias", alias, "-file", file.absolutePath)
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
         if (rfc) {
             args.add("-rfc")
         }
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -218,15 +273,12 @@ object KeyToolAPI {
         file: File,
         keypass: String? = null,
         trustcacerts: Boolean = false,
-        noprompt: Boolean = true
+        noprompt: Boolean = true,
+        storetype: String? = null,
+        cacerts: Boolean = false
     ): KeytoolResult<Unit> {
-        val args = mutableListOf(
-            "-importcert",
-            "-alias", alias,
-            "-file", file.absolutePath,
-            "-keystore", keystore.absolutePath,
-            "-storepass", storepass
-        )
+        val args = mutableListOf("-importcert", "-alias", alias, "-file", file.absolutePath)
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
         if (keypass != null) {
             args.addAll(listOf("-keypass", keypass))
         }
@@ -236,6 +288,7 @@ object KeyToolAPI {
         if (noprompt) {
             args.add("-noprompt")
         }
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -254,7 +307,11 @@ object KeyToolAPI {
         destStorepass: String,
         destAlias: String? = null,
         destKeypass: String? = null,
-        noprompt: Boolean = true
+        noprompt: Boolean = true,
+        srcStoretype: String? = null,
+        destStoretype: String? = null,
+        srcProvidername: String? = null,
+        destProvidername: String? = null
     ): KeytoolResult<Unit> {
         val args = mutableListOf(
             "-importkeystore",
@@ -278,6 +335,10 @@ object KeyToolAPI {
         if (noprompt) {
             args.add("-noprompt")
         }
+        if (srcStoretype != null) args.addAll(listOf("-srcstoretype", srcStoretype))
+        if (destStoretype != null) args.addAll(listOf("-deststoretype", destStoretype))
+        if (srcProvidername != null) args.addAll(listOf("-srcprovidername", srcProvidername))
+        if (destProvidername != null) args.addAll(listOf("-destprovidername", destProvidername))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -291,14 +352,20 @@ object KeyToolAPI {
         keystore: File,
         storepass: String,
         alias: String,
-        keypass: String
+        keypass: String,
+        keyAlgorithm: KeyAlgorithm? = null,
+        keySize: Int? = null,
+        storetype: String? = null
     ): KeytoolResult<Unit> {
-        val args = listOf(
+        val args = mutableListOf(
             "-importpass",
             "-alias", alias,
             "-keystore", keystore.absolutePath,
             "-storepass", storepass
         )
+        if (keyAlgorithm != null) args.addAll(listOf("-keyalg", keyAlgorithm.cliName))
+        if (keySize != null) args.addAll(listOf("-keysize", keySize.toString()))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray(), stdin = "$keypass\n$keypass\n")
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -311,14 +378,13 @@ object KeyToolAPI {
     suspend fun delete(
         keystore: File,
         storepass: String,
-        alias: String
+        alias: String,
+        storetype: String? = null,
+        cacerts: Boolean = false
     ): KeytoolResult<Unit> {
-        val args = listOf(
-            "-delete",
-            "-alias", alias,
-            "-keystore", keystore.absolutePath,
-            "-storepass", storepass
-        )
+        val args = mutableListOf("-delete", "-alias", alias)
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -333,18 +399,16 @@ object KeyToolAPI {
         storepass: String,
         alias: String,
         destalias: String,
-        keypass: String?
+        keypass: String?,
+        storetype: String? = null,
+        cacerts: Boolean = false
     ): KeytoolResult<Unit> {
-        val args = mutableListOf(
-            "-changealias",
-            "-alias", alias,
-            "-destalias", destalias,
-            "-keystore", keystore.absolutePath,
-            "-storepass", storepass
-        )
+        val args = mutableListOf("-changealias", "-alias", alias, "-destalias", destalias)
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
         if (keypass != null) {
             args.addAll(listOf("-keypass", keypass))
         }
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -359,9 +423,10 @@ object KeyToolAPI {
         storepass: String,
         alias: String,
         keypass: String,
-        newKeypass: String
+        newKeypass: String,
+        storetype: String? = null
     ): KeytoolResult<Unit> {
-        val args = listOf(
+        val args = mutableListOf(
             "-keypasswd",
             "-alias", alias,
             "-keypass", keypass,
@@ -369,6 +434,7 @@ object KeyToolAPI {
             "-keystore", keystore.absolutePath,
             "-storepass", storepass
         )
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -381,14 +447,13 @@ object KeyToolAPI {
     suspend fun storePasswd(
         keystore: File,
         storepass: String,
-        newStorepass: String
+        newStorepass: String,
+        storetype: String? = null,
+        cacerts: Boolean = false
     ): KeytoolResult<Unit> {
-        val args = listOf(
-            "-storepasswd",
-            "-new", newStorepass,
-            "-keystore", keystore.absolutePath,
-            "-storepass", storepass
-        )
+        val args = mutableListOf("-storepasswd", "-new", newStorepass)
+        args.addAll(buildKeystoreArgs(keystore, storepass, cacerts))
+        if (storetype != null) args.addAll(listOf("-storetype", storetype))
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             KeytoolResult.Success(Unit)
@@ -399,11 +464,29 @@ object KeyToolAPI {
 
     // ===== 14. PRINTCERT → CertificateInfo =====
     suspend fun printCert(
-        file: File,
-        verbose: Boolean = true
+        file: File? = null,
+        verbose: Boolean = true,
+        rfc: Boolean = false,
+        sslserver: String? = null,
+        jarfile: File? = null
     ): KeytoolResult<CertificateInfo> {
-        val args = mutableListOf("-printcert", "-file", file.absolutePath)
-        if (verbose) args.add("-v")
+        val sourceCount = listOfNotNull(file, sslserver, jarfile).size
+        if (sourceCount != 1) {
+            return KeytoolResult.Error(
+                "Exactly one of file, sslserver, or jarfile must be specified",
+                -1
+            )
+        }
+
+        val args = mutableListOf("-printcert")
+        if (file != null) args.addAll(listOf("-file", file.absolutePath))
+        if (sslserver != null) args.addAll(listOf("-sslserver", sslserver))
+        if (jarfile != null) args.addAll(listOf("-jarfile", jarfile.absolutePath))
+        if (rfc) {
+            args.add("-rfc")
+        } else if (verbose) {
+            args.add("-v")
+        }
         val result = KeyToolExecutor.execute(*args.toTypedArray())
         return if (result.exitCode == 0) {
             try {
@@ -455,5 +538,25 @@ object KeyToolAPI {
         } else {
             KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
         }
+    }
+
+    // ===== 17. SHOWINFO -TLS → TlsInfo =====
+    suspend fun showInfoTls(): KeytoolResult<TlsInfo> {
+        val result = KeyToolExecutor.execute("-showinfo", "-tls")
+        return if (result.exitCode == 0) {
+            try {
+                val parsed = KeyToolParser.parseTlsInfoOutput(result.stdout)
+                KeytoolResult.Success(parsed)
+            } catch (e: Exception) {
+                KeytoolResult.Error("Failed to parse TLS info output: ${e.message}", -1)
+            }
+        } else {
+            KeytoolResult.Error(result.stderr.ifBlank { result.stdout }, result.exitCode)
+        }
+    }
+
+    // ===== 18. VERSION → String =====
+    fun version(): String {
+        return System.getProperty("java.version") ?: "unknown"
     }
 }

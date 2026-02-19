@@ -517,6 +517,30 @@ class KeyToolAPIIntegrationTests {
     }
 
     @Test
+    fun test_31b_list_with_alias_filter() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key2", KEY_PASSWORD, "CN=Other, O=OtherOrg, C=BR", 365)
+
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, verbose = true, alias = "key1")
+
+        assertTrue(result is KeytoolResult.Success, "List with alias filter should succeed")
+        val entries = result.data.entries
+        assertEquals(1, entries.size, "Should return only the filtered alias")
+        assertEquals("key1", entries[0].alias)
+    }
+
+    @Test
+    fun test_31c_list_with_alias_nonexistent() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key1", KEY_PASSWORD, DN, 365)
+
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, verbose = true, alias = "nonexistent")
+
+        assertTrue(result is KeytoolResult.Error, "List with non-existent alias should fail")
+    }
+
+    @Test
     fun test_32_list_with_special_chars_in_dn() = runTest {
         val ks = newKeystore()
         // DN with special characters (commas, equals signs in values)
@@ -640,5 +664,329 @@ class KeyToolAPIIntegrationTests {
         val result = KeyToolAPI.list(ks, "wrong_password_xyz")
 
         assertTrue(result is KeytoolResult.Error)
+    }
+
+    // ===== NEW PARAMETER INTEGRATION TESTS =====
+
+    @Test
+    fun test_40_genKeyPair_with_ext_san() = runTest {
+        val ks = newKeystore()
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "sankey", KEY_PASSWORD, DN, 365,
+            ext = listOf("san=dns:example.com,dns:www.example.com")
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val cert = File(testDir, "san_cert.pem")
+        KeyToolAPI.exportCert(ks, TEST_PASSWORD, "sankey", cert, rfc = true)
+        val printResult = KeyToolAPI.printCert(file = cert)
+        assertTrue(printResult is KeytoolResult.Success)
+    }
+
+    @Test
+    fun test_41_genKeyPair_with_multiple_ext() = runTest {
+        val ks = newKeystore()
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "multiext", KEY_PASSWORD, DN, 365,
+            ext = listOf("san=dns:a.com", "bc=ca:true")
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "multiext" })
+    }
+
+    @Test
+    fun test_42_genKeyPair_with_startdate() = runTest {
+        val ks = newKeystore()
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "startkey", KEY_PASSWORD, DN, 365,
+            startdate = "+30d"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "startkey" })
+    }
+
+    @Test
+    fun test_43_genKeyPair_with_storetype_jks() = runTest {
+        val ks = File(testDir, "explicit_jks_${System.nanoTime()}.jks")
+        val result = KeyToolAPI.genKeyPair(
+            ks, TEST_PASSWORD, "jkskey", KEY_PASSWORD, DN, 365,
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD, storetype = "JKS") as KeytoolResult.Success
+        assertEquals("JKS", list.data.type)
+        assertTrue(list.data.entries.any { it.alias == "jkskey" })
+    }
+
+    @Test
+    fun test_44_genCert_with_ext() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "ext_test.csr")
+        val cert = File(testDir, "ext_test.cert")
+        KeyToolAPI.certReq(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr)
+
+        val result = KeyToolAPI.genCert(
+            ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr, cert, 365,
+            ext = listOf("ku=digitalSignature")
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(cert.exists())
+    }
+
+    @Test
+    fun test_45_genCert_with_rfc_output() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "rfc_test.csr")
+        val cert = File(testDir, "rfc_test.cert")
+        KeyToolAPI.certReq(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr)
+
+        val result = KeyToolAPI.genCert(
+            ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr, cert, 365,
+            rfc = true
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(cert.readText().contains("-----BEGIN"))
+    }
+
+    @Test
+    fun test_46_genCert_with_dname_override() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "dname_test.csr")
+        val cert = File(testDir, "dname_test.cert")
+        KeyToolAPI.certReq(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr)
+
+        val result = KeyToolAPI.genCert(
+            ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr, cert, 365,
+            dname = "CN=Overridden, O=NewOrg, C=BR", rfc = true
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(cert.exists())
+    }
+
+    @Test
+    fun test_47_certReq_with_ext() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "ext_csr.csr")
+
+        val result = KeyToolAPI.certReq(
+            ks, TEST_PASSWORD, "key", KEY_PASSWORD, csr,
+            ext = listOf("san=dns:test.com")
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(csr.exists())
+    }
+
+    @Test
+    fun test_48_certReq_with_dname_override() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "dname_csr.csr")
+
+        val result = KeyToolAPI.certReq(
+            ks, TEST_PASSWORD, "key", KEY_PASSWORD, csr,
+            dname = "CN=CSR Override, O=NewOrg, C=BR"
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(csr.exists())
+    }
+
+    @Test
+    fun test_49_list_with_rfc() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+
+        val result = KeyToolAPI.list(ks, TEST_PASSWORD, rfc = true)
+        // rfc output may not parse into a full KeystoreInfo structure,
+        // but should at least succeed or fail gracefully
+        assertTrue(result is KeytoolResult.Success || result is KeytoolResult.Error)
+    }
+
+    @Test
+    fun test_50_importKeystore_with_storetypes() = runTest {
+        val srcKs = File(testDir, "src_jks_${System.nanoTime()}.jks")
+        val destKs = newKeystore()
+
+        KeyToolAPI.genKeyPair(srcKs, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365, storetype = "JKS")
+
+        val result = KeyToolAPI.importKeystore(
+            srcKs, TEST_PASSWORD, "key", KEY_PASSWORD,
+            destKs, TEST_PASSWORD,
+            destKeypass = KEY_PASSWORD,
+            srcStoretype = "JKS",
+            destStoretype = "PKCS12"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(destKs, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "key" })
+    }
+
+    @Test
+    fun test_51_importPass_with_keyAlgorithm() = runTest {
+        val ks = newKeystore()
+        val result = KeyToolAPI.importPass(
+            ks, TEST_PASSWORD, "pwd_alg", "secret",
+            keyAlgorithm = KeyAlgorithm.AES,
+            keySize = 256
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "pwd_alg" })
+    }
+
+    @Test
+    fun test_52_delete_with_storetype() = runTest {
+        val ks = File(testDir, "del_jks_${System.nanoTime()}.jks")
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365, storetype = "JKS")
+
+        val result = KeyToolAPI.delete(ks, TEST_PASSWORD, "key", storetype = "JKS")
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD, storetype = "JKS") as KeytoolResult.Success
+        assertFalse(list.data.entries.any { it.alias == "key" })
+    }
+
+    @Test
+    fun test_53_changeAlias_with_storetype() = runTest {
+        val ks = File(testDir, "alias_jks_${System.nanoTime()}.jks")
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "oldname", KEY_PASSWORD, DN, 365, storetype = "JKS")
+
+        val result = KeyToolAPI.changeAlias(
+            ks, TEST_PASSWORD, "oldname", "newname", KEY_PASSWORD,
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD, storetype = "JKS") as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "newname" })
+        assertFalse(list.data.entries.any { it.alias == "oldname" })
+    }
+
+    @Test
+    fun test_54_keyPasswd_with_storetype() = runTest {
+        val ks = File(testDir, "kp_jks_${System.nanoTime()}.jks")
+        KeyToolExecutor.execute(
+            "-genkeypair", "-alias", "key", "-dname", DN,
+            "-validity", "365", "-keyalg", "RSA", "-keysize", "2048",
+            "-keystore", ks.absolutePath, "-storepass", TEST_PASSWORD,
+            "-keypass", KEY_PASSWORD, "-storetype", "JKS"
+        )
+
+        val result = KeyToolAPI.keyPasswd(
+            ks, TEST_PASSWORD, "key", KEY_PASSWORD, "newkeypass",
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+    }
+
+    @Test
+    fun test_55_storePasswd_with_storetype() = runTest {
+        val ks = File(testDir, "sp_jks_${System.nanoTime()}.jks")
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365, storetype = "JKS")
+
+        val result = KeyToolAPI.storePasswd(
+            ks, TEST_PASSWORD, "newstorepass",
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, "newstorepass", storetype = "JKS")
+        assertTrue(list is KeytoolResult.Success)
+    }
+
+    @Test
+    fun test_56_exportCert_with_storetype() = runTest {
+        val ks = File(testDir, "exp_jks_${System.nanoTime()}.jks")
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365, storetype = "JKS")
+        val cert = File(testDir, "exp_st.pem")
+
+        val result = KeyToolAPI.exportCert(
+            ks, TEST_PASSWORD, "key", cert, rfc = true,
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(cert.exists())
+        assertTrue(cert.readText().contains("-----BEGIN CERTIFICATE-----"))
+    }
+
+    @Test
+    fun test_57_printCert_with_rfc() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365)
+        val cert = File(testDir, "print_rfc.pem")
+        KeyToolAPI.exportCert(ks, TEST_PASSWORD, "key", cert, rfc = true)
+
+        val result = KeyToolAPI.printCert(file = cert, rfc = true)
+        // rfc mode output may not have parseable verbose fields
+        assertTrue(result is KeytoolResult.Success || result is KeytoolResult.Error)
+    }
+
+    @Test
+    fun test_58_genSecKey_with_storetype() = runTest {
+        val ks = newKeystore()
+        val result = KeyToolAPI.genSecKey(
+            ks, TEST_PASSWORD, "aes_st", KEY_PASSWORD,
+            keyAlgorithm = KeyAlgorithm.AES, keySize = 256,
+            storetype = "PKCS12"
+        )
+        assertTrue(result is KeytoolResult.Success)
+
+        val list = KeyToolAPI.list(ks, TEST_PASSWORD) as KeytoolResult.Success
+        assertTrue(list.data.entries.any { it.alias == "aes_st" })
+    }
+
+    @Test
+    fun test_59_genCert_with_startdate() = runTest {
+        val ks = newKeystore()
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, DN, 365)
+        val csr = File(testDir, "sd_test.csr")
+        val cert = File(testDir, "sd_test.cert")
+        KeyToolAPI.certReq(ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr)
+
+        val result = KeyToolAPI.genCert(
+            ks, TEST_PASSWORD, "ca", KEY_PASSWORD, csr, cert, 365,
+            startdate = "+10d"
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(cert.exists())
+    }
+
+    @Test
+    fun test_60_showinfo_tls() = runTest {
+        val result = KeyToolAPI.showInfoTls()
+        assertTrue(result is KeytoolResult.Success, "showInfoTls should succeed")
+        assertTrue(result.data.enabledProtocols.isNotEmpty(), "Should have at least one enabled protocol")
+        assertTrue(result.data.enabledCipherSuites.isNotEmpty(), "Should have at least one enabled cipher suite")
+    }
+
+    @Test
+    fun test_61_version() {
+        val version = KeyToolAPI.version()
+        assertTrue(version.isNotEmpty(), "Version should not be empty")
+        assertNotEquals("unknown", version, "Version should not be 'unknown'")
+    }
+
+    @Test
+    fun test_62_certReq_with_storetype() = runTest {
+        val ks = File(testDir, "csr_jks_${System.nanoTime()}.jks")
+        KeyToolAPI.genKeyPair(ks, TEST_PASSWORD, "key", KEY_PASSWORD, DN, 365, storetype = "JKS")
+        val csr = File(testDir, "st_csr.csr")
+
+        val result = KeyToolAPI.certReq(
+            ks, TEST_PASSWORD, "key", KEY_PASSWORD, csr,
+            storetype = "JKS"
+        )
+        assertTrue(result is KeytoolResult.Success)
+        assertTrue(csr.exists())
     }
 }

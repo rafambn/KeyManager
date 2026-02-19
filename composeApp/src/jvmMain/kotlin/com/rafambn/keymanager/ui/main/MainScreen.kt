@@ -72,7 +72,15 @@ fun MainScreen(
             results["create_key"]?.let { result ->
                 val create = result as? DialogResult.CreateKey
                 if (create != null) {
-                    viewModel.createKey(create.alias, create.dn, create.validity)
+                    viewModel.createKey(
+                        alias = create.alias,
+                        dn = create.dn,
+                        validityDays = create.validity,
+                        keyAlgorithm = create.keyAlgorithm,
+                        keySize = create.keySize,
+                        signatureAlgorithm = create.signatureAlgorithm,
+                        ecCurve = create.ecCurve
+                    )
                     resultStore.removeResult<DialogResult.CreateKey>("create_key")
                 }
             }

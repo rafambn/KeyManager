@@ -8,12 +8,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.rafambn.keymanager.keytool.enums.ECCurve
+import com.rafambn.keymanager.keytool.enums.KeyAlgorithm
+import com.rafambn.keymanager.keytool.enums.SignatureAlgorithm
 import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateKeyScreen(
-    onCreateKey: (String, String, Int) -> Unit,
+    onCreateKey: (String, String, Int, KeyAlgorithm, Int?, SignatureAlgorithm?, ECCurve?) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var alias by remember { mutableStateOf("") }
@@ -26,11 +30,55 @@ fun CreateKeyScreen(
     var st by remember { mutableStateOf("") }
     var c by remember { mutableStateOf("") }
 
+    // Crypto settings state
+    var selectedKeyAlgorithm by remember { mutableStateOf(KeyAlgorithm.RSA) }
+    var keyAlgorithmExpanded by remember { mutableStateOf(false) }
+    var selectedKeySize by remember { mutableStateOf<Int?>(null) }
+    var keySizeExpanded by remember { mutableStateOf(false) }
+    var selectedSignatureAlgorithm by remember { mutableStateOf<SignatureAlgorithm?>(null) }
+    var sigAlgorithmExpanded by remember { mutableStateOf(false) }
+    var selectedEcCurve by remember { mutableStateOf<ECCurve?>(null) }
+    var ecCurveExpanded by remember { mutableStateOf(false) }
+
+    val availableKeyAlgorithms = remember {
+        KeyAlgorithm.signatureAlgorithms().filter { it.isUsable() && !it.deprecated }
+    }
+
+    val availableKeySizes = remember(selectedKeyAlgorithm) {
+        when (selectedKeyAlgorithm) {
+            KeyAlgorithm.RSA, KeyAlgorithm.RSA_PSS -> listOf(2048, 3072, 4096, 8192)
+            KeyAlgorithm.DSA -> listOf(1024, 2048, 3072)
+            KeyAlgorithm.EC -> listOf(256, 384, 521)
+            else -> emptyList()
+        }
+    }
+
+    val availableSignatureAlgorithms = remember(selectedKeyAlgorithm) {
+        SignatureAlgorithm.compatibleWith(selectedKeyAlgorithm).filter { it.isUsable() && !it.deprecated }
+    }
+
+    val availableEcCurves = remember { ECCurve.recommendedCurves() }
+
+    val showKeySizeSelector = remember(selectedKeyAlgorithm, selectedEcCurve) {
+        selectedKeyAlgorithm.defaultKeySize != -1 &&
+            selectedKeyAlgorithm.supportedKeySizes.first != selectedKeyAlgorithm.supportedKeySizes.last &&
+            !(selectedKeyAlgorithm == KeyAlgorithm.EC && selectedEcCurve != null)
+    }
+
+    val showEcCurveSelector = selectedKeyAlgorithm == KeyAlgorithm.EC
+
+    // Reset dependent fields on algorithm change
+    LaunchedEffect(selectedKeyAlgorithm) {
+        selectedKeySize = null
+        selectedSignatureAlgorithm = null
+        selectedEcCurve = null
+    }
+
     Dialog(onDismissRequest = onNavigateBack) {
         Card(
             modifier = Modifier
                 .width(600.dp)
-                .heightIn(max = 700.dp),
+                .heightIn(max = 850.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
@@ -59,6 +107,149 @@ fun CreateKeyScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Cryptographic Settings section
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    stringResource(Res.string.crypto_section_title),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Spacer(Modifier.height(8.dp))
+
+                // Key Algorithm dropdown
+                ExposedDropdownMenuBox(
+                    expanded = keyAlgorithmExpanded,
+                    onExpandedChange = { keyAlgorithmExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedKeyAlgorithm.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(Res.string.key_algorithm_label)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = keyAlgorithmExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = keyAlgorithmExpanded,
+                        onDismissRequest = { keyAlgorithmExpanded = false }
+                    ) {
+                        availableKeyAlgorithms.forEach { algo ->
+                            DropdownMenuItem(
+                                text = { Text(algo.displayName) },
+                                onClick = {
+                                    selectedKeyAlgorithm = algo
+                                    keyAlgorithmExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // EC Curve dropdown (only for EC)
+                if (showEcCurveSelector) {
+                    Spacer(Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = ecCurveExpanded,
+                        onExpandedChange = { ecCurveExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedEcCurve?.displayName ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(Res.string.ec_curve_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = ecCurveExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = ecCurveExpanded,
+                            onDismissRequest = { ecCurveExpanded = false }
+                        ) {
+                            availableEcCurves.forEach { curve ->
+                                DropdownMenuItem(
+                                    text = { Text(curve.displayName) },
+                                    onClick = {
+                                        selectedEcCurve = curve
+                                        ecCurveExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Key Size dropdown (hidden for fixed-size algos or when EC curve is set)
+                if (showKeySizeSelector && availableKeySizes.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = keySizeExpanded,
+                        onExpandedChange = { keySizeExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedKeySize?.toString() ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(Res.string.key_size_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = keySizeExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = keySizeExpanded,
+                            onDismissRequest = { keySizeExpanded = false }
+                        ) {
+                            availableKeySizes.forEach { size ->
+                                DropdownMenuItem(
+                                    text = { Text("$size") },
+                                    onClick = {
+                                        selectedKeySize = size
+                                        keySizeExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Signature Algorithm dropdown
+                if (availableSignatureAlgorithms.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = sigAlgorithmExpanded,
+                        onExpandedChange = { sigAlgorithmExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedSignatureAlgorithm?.displayName ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(Res.string.signature_algorithm_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sigAlgorithmExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = sigAlgorithmExpanded,
+                            onDismissRequest = { sigAlgorithmExpanded = false }
+                        ) {
+                            availableSignatureAlgorithms.forEach { sigAlg ->
+                                DropdownMenuItem(
+                                    text = { Text(sigAlg.displayName) },
+                                    onClick = {
+                                        selectedSignatureAlgorithm = sigAlg
+                                        sigAlgorithmExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // DN Section
                 Spacer(Modifier.height(16.dp))
                 Text(stringResource(Res.string.dn_section_title), style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(8.dp))
@@ -132,7 +323,11 @@ fun CreateKeyScreen(
                             }.removeSuffix(",")
 
                             if (alias.isNotBlank() && dn.isNotBlank()) {
-                                onCreateKey(alias, dn, validity.toIntOrNull() ?: 365)
+                                onCreateKey(
+                                    alias, dn, validity.toIntOrNull() ?: 365,
+                                    selectedKeyAlgorithm, selectedKeySize,
+                                    selectedSignatureAlgorithm, selectedEcCurve
+                                )
                             }
                         }
                     ) {
