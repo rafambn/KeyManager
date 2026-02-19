@@ -82,12 +82,6 @@ jobs:
             artifact-name: keymanager-linux-arm64
             artifact-path: composeApp/build/compose/binaries/main-release/deb/*.deb
 
-          - os: ubuntu-24.04-arm
-            task: packageDeb
-            name: Linux ARM64
-            artifact-name: keymanager-linux-arm64
-            artifact-path: composeApp/build/compose/binaries/main/deb/*.deb
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
