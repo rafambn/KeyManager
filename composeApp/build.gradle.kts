@@ -96,26 +96,41 @@ compose.desktop {
 }
 
 // jlink strips native commands (--strip-native-commands), which removes keytool from
-// the bundled runtime. Copy it back from the JDK used to build the project.
-fun copyKeytoolToRuntime(variant: String) {
-    val buildDir = project.layout.buildDirectory.get().asFile
-    val runtimeBinDir = File("$buildDir/compose/tmp/$variant/runtime/bin")
-    val executable = if (System.getProperty("os.name").lowercase().contains("windows")) "keytool.exe" else "keytool"
-    val sourceKeytool = File(System.getProperty("java.home")).resolve("bin/$executable")
+// the bundled runtime. A dedicated task copies it back from the build JDK before packaging.
+abstract class CopyKeytoolTask : DefaultTask() {
+    @get:InputFile
+    abstract val sourceKeytool: RegularFileProperty
 
-    runtimeBinDir.mkdirs()
+    @get:OutputDirectory
+    abstract val targetDir: DirectoryProperty
 
-    if (sourceKeytool.exists()) {
-        val dest = runtimeBinDir.resolve(executable)
-        sourceKeytool.copyTo(dest, overwrite = true)
-        dest.setExecutable(true)
-    } else {
-        logger.warn("keytool not found at ${sourceKeytool.absolutePath} — bundled runtime will not include keytool")
+    @TaskAction
+    fun copy() {
+        val source = sourceKeytool.get().asFile
+        val dir = targetDir.get().asFile
+        dir.mkdirs()
+        if (source.exists()) {
+            val dest = dir.resolve(source.name)
+            source.copyTo(dest, overwrite = true)
+            dest.setExecutable(true)
+        } else {
+            logger.warn("keytool not found at ${source.absolutePath} — bundled runtime will not include keytool")
+        }
     }
 }
 
 afterEvaluate {
+    val executable = if (System.getProperty("os.name").lowercase().contains("windows")) "keytool.exe" else "keytool"
+    val sourceKeytool = File(System.getProperty("java.home")).resolve("bin/$executable")
+    val createRuntimeTask = tasks.named("createRuntimeImage")
+
     for (taskName in listOf("packageDeb", "packageMsi", "packageDmg")) {
-        tasks.findByName(taskName)?.doFirst { copyKeytoolToRuntime("main") }
+        val packagingTask = tasks.findByName(taskName) ?: continue
+        val copyTask = tasks.register("copyKeytoolFor${taskName.replaceFirstChar { it.uppercase() }}", CopyKeytoolTask::class) {
+            this.sourceKeytool.set(sourceKeytool)
+            targetDir.set(layout.buildDirectory.dir("compose/tmp/main/runtime/bin"))
+            dependsOn(createRuntimeTask)
+        }
+        packagingTask.dependsOn(copyTask)
     }
 }
