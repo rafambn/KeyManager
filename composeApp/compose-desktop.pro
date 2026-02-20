@@ -1,23 +1,123 @@
-# Suppress all warnings for unresolved class references.
--dontwarn **
+# JDK library jars — ProGuard requires these to resolve JDK stdlib classes.
+# Uses jmods (available in Azul Zulu, Oracle, Corretto, etc. — NOT Adoptium JDK 24+).
+-libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.compiler.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.datatransfer.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.desktop.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.instrument.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.logging.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.management.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.naming.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.net.http.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.prefs.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.rmi.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.security.jgss.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.security.sasl.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.sql.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.xml.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/jdk.unsupported.jmod(!**.jar;!module-info.class)
 
-# Disable optimization and obfuscation to avoid IncompleteClassHierarchyException on JDK 25
--dontoptimize
--dontobfuscate
+-keep class kotlin.** { *; }
+-keep class org.jetbrains.skia.** { *; }
+-keep class org.jetbrains.skiko.** { *; }
 
-# Disable preverification as it's causing IncompleteClassHierarchyException on JDK 25 
-# even with lib/modules. We'll handle the VerifyError differently.
--dontpreverify
+-assumenosideeffects public class androidx.compose.runtime.ComposerKt {
+    void sourceInformation(androidx.compose.runtime.Composer,java.lang.String);
+    void sourceInformationMarkerStart(androidx.compose.runtime.Composer,int,java.lang.String);
+    void sourceInformationMarkerEnd(androidx.compose.runtime.Composer);
+    boolean isTraceInProgress();
+    void traceEventStart(int, java.lang.String);
+    void traceEventEnd();
+}
 
-# Provide the JDK runtime modules for hierarchy resolution.
--libraryjars <java.home>/lib/modules(!**.jar;!module-info.class)
+# Kotlinx Coroutines Rules
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+-keepclassmembers class kotlin.coroutines.SafeContinuation {
+    volatile <fields>;
+}
+-dontwarn java.lang.instrument.ClassFileTransformer
+-dontwarn sun.misc.SignalHandler
+-dontwarn java.lang.instrument.Instrumentation
+-dontwarn sun.misc.Signal
+-dontwarn java.lang.ClassValue
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 
-# Common Compose Desktop ProGuard rules
--keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
--dontnote
--ignorewarnings
+-keep,allowshrinking,allowobfuscation class kotlinx.coroutines.flow.FlowKt** { *; }
+-keep,allowshrinking,allowobfuscation class kotlinx.coroutines.Job { *; }
+-dontnote kotlinx.coroutines.**
 
-# Keep everything to ensure it works, then we can try to narrow it down
--keep class ** { *; }
--keep interface ** { *; }
--keep enum ** { *; }
+# org.jetbrains.kotlinx:kotlinx-coroutines-swing
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory
+
+# Kotlinx Datetime
+-dontwarn kotlinx.serialization.KSerializer
+-dontwarn kotlinx.serialization.Serializable
+-dontwarn kotlinx.datetime.serializers.**
+
+-dontwarn android.annotation.SuppressLint
+
+-dontnote kotlin.coroutines.jvm.internal.**
+-dontnote kotlin.internal.**
+-dontnote kotlin.jvm.internal.**
+-dontnote kotlin.reflect.**
+-dontnote kotlinx.coroutines.debug.internal.**
+-dontnote kotlinx.coroutines.internal.**
+-keep class kotlin.coroutines.Continuation
+-keep class kotlinx.coroutines.CancellableContinuation
+-keep class kotlinx.coroutines.channels.Channel
+-keep class kotlinx.coroutines.CoroutineDispatcher
+-keep class kotlinx.coroutines.CoroutineScope
+-dontwarn org.graalvm.compiler.core.aarch64.AArch64NodeMatchRules_MatchStatementSet*
+
+# Androidx
+-keep,allowshrinking,allowobfuscation class androidx.compose.runtime.SnapshotStateKt__DerivedStateKt { *; }
+-keep class androidx.compose.material3.SliderDefaults { *; }
+-dontnote androidx.**
+
+# Kotlinx serialization
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    static <1>$* Companion;
+}
+-keepnames @kotlinx.serialization.internal.NamedCompanion class *
+-if @kotlinx.serialization.internal.NamedCompanion class *
+-keepclassmembernames class * {
+    static <1> *;
+}
+-if @kotlinx.serialization.Serializable class ** {
+    static **$* *;
+}
+-keepclassmembers class <2>$<3> {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-if @kotlinx.serialization.Serializable class ** {
+    public static ** INSTANCE;
+}
+-keepclassmembers class <1> {
+    public static <1> INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-dontnote kotlinx.serialization.**
+-dontwarn kotlinx.serialization.internal.ClassValueReferences
+-keepclassmembers public class **$$serializer {
+    private ** descriptor;
+}
+
+-keep class **$$serializer {
+    *;
+}
+-dontnote **$$serializer
+
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1>$** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# org.jetbrains.runtime:jbr-api
+-dontwarn com.jetbrains.JBR**
+-dontnote com.jetbrains.JBR**

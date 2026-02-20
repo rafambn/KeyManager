@@ -9,7 +9,13 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(25)
+    // Azul Zulu is used instead of Adoptium/Temurin because Adoptium enabled JEP 493 starting
+    // with JDK 24, which removes jmods from the distribution. ProGuard requires jmods to resolve
+    // JDK stdlib classes during release packaging. Azul Zulu still ships jmods.
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+        vendor = JvmVendorSpec.AZUL
+    }
 
     jvm()
 
@@ -44,36 +50,29 @@ kotlin {
     }
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(25))
-    }
-}
-
-
-val jdk25Launcher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(25))
-}
-
 compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
-        javaHome = jdk25Launcher.get().metadata.installationPath.asFile.absolutePath
-        jvmArgs += listOf("--enable-native-access=ALL-UNNAMED", "-Xverify:none")
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "KeyManager"
+            packageVersion = "1.1.1"
+
+            linux {
+                iconFile.set(project.file("src/jvmMain/resources/icon.png"))
+            }
+            macOS {
+                iconFile.set(project.file("src/jvmMain/resources/icon.icns"))
+            }
+            windows {
+                iconFile.set(project.file("src/jvmMain/resources/icon.ico"))
+            }
+        }
 
         buildTypes.release.proguard {
             version.set("7.8.2")
             configurationFiles.from(project.file("compose-desktop.pro"))
         }
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.rafambn.keymanager"
-            packageVersion = "1.1.0"
-        }
     }
-}
-
-tasks.withType<JavaExec>().configureEach {
-    jvmArgs = (jvmArgs ?: emptyList()) + listOf("--enable-native-access=ALL-UNNAMED", "-Xverify:none")
 }
