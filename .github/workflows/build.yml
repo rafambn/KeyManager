@@ -21,7 +21,6 @@ jobs:
         with:
           java-version: '25'
           distribution: 'jetbrains'
-          check-latest: true
           cache: 'gradle'
 
       - name: Setup Gradle
@@ -92,7 +91,6 @@ jobs:
         with:
           java-version: '25'
           distribution: 'jetbrains'
-          check-latest: true
           cache: 'gradle'
 
       - name: Setup Gradle
