@@ -122,15 +122,17 @@ abstract class CopyKeytoolTask : DefaultTask() {
 afterEvaluate {
     val executable = if (System.getProperty("os.name").lowercase().contains("windows")) "keytool.exe" else "keytool"
     val sourceKeytool = File(System.getProperty("java.home")).resolve("bin/$executable")
-    val createRuntimeTask = tasks.named("createRuntimeImage")
 
-    for (taskName in listOf("packageDeb", "packageMsi", "packageDmg")) {
-        val packagingTask = tasks.findByName(taskName) ?: continue
-        val copyTask = tasks.register("copyKeytoolFor${taskName.replaceFirstChar { it.uppercase() }}", CopyKeytoolTask::class) {
-            this.sourceKeytool.set(sourceKeytool)
-            targetDir.set(layout.buildDirectory.dir("compose/tmp/main/runtime/bin"))
-            dependsOn(createRuntimeTask)
-        }
-        packagingTask.dependsOn(copyTask)
+    val copyTask = tasks.register("copyKeytool", CopyKeytoolTask::class) {
+        this.sourceKeytool.set(sourceKeytool)
+        targetDir.set(layout.buildDirectory.dir("compose/tmp/main/runtime/bin"))
+        dependsOn(tasks.named("createRuntimeImage"))
+    }
+
+    // On macOS/Windows, createDistributable sits between createRuntimeImage and the
+    // package task and reads the same runtime directory — it must also depend on copyKeytool.
+    // On Linux, packageDeb uses the runtime directly with no intermediate task.
+    listOf("createDistributable", "packageDeb", "packageMsi", "packageDmg").forEach { name ->
+        tasks.findByName(name)?.dependsOn(copyTask)
     }
 }
