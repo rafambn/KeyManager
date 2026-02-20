@@ -9,14 +9,6 @@ plugins {
 }
 
 kotlin {
-    // Azul Zulu is used instead of Adoptium/Temurin because Adoptium enabled JEP 493 starting
-    // with JDK 24, which removes jmods from the distribution. ProGuard requires jmods to resolve
-    // JDK stdlib classes during release packaging. Azul Zulu still ships jmods.
-    jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-        vendor = JvmVendorSpec.AZUL
-    }
-
     jvm()
 
     sourceSets {
@@ -68,11 +60,6 @@ compose.desktop {
             windows {
                 iconFile.set(project.file("src/jvmMain/resources/icon.ico"))
             }
-        }
-
-        buildTypes.release.proguard {
-            version.set("7.8.2")
-            configurationFiles.from(project.file("compose-desktop.pro"))
         }
     }
 }

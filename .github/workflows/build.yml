@@ -16,11 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 25 (Azul Zulu)
+      - name: Set up JDK 25 (JetBrains)
         uses: actions/setup-java@v4
         with:
           java-version: '25'
-          distribution: 'zulu'
+          distribution: 'jetbrains'
           check-latest: true
           cache: 'gradle'
 
@@ -54,31 +54,31 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            task: packageReleaseMsi
+            task: packageMsi
             name: Windows x64
             artifact-name: keymanager-windows-x64
             artifact-path: composeApp/build/compose/binaries/main-release/msi/*.msi
 
           - os: macos-15-intel
-            task: packageReleaseDmg
+            task: packageDmg
             name: macOS x64
             artifact-name: keymanager-macos-x64
             artifact-path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
 
           - os: macos-latest
-            task: packageReleaseDmg
+            task: packageDmg
             name: macOS ARM64
             artifact-name: keymanager-macos-arm64
             artifact-path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
 
           - os: ubuntu-latest
-            task: packageReleaseDeb
+            task: packageDeb
             name: Linux x64
             artifact-name: keymanager-linux-x64
             artifact-path: composeApp/build/compose/binaries/main-release/deb/*.deb
 
           - os: ubuntu-24.04-arm
-            task: packageReleaseDeb
+            task: packageDeb
             name: Linux ARM64
             artifact-name: keymanager-linux-arm64
             artifact-path: composeApp/build/compose/binaries/main-release/deb/*.deb
@@ -87,11 +87,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 25 (Azul Zulu)
+      - name: Set up JDK 25 (JetBrains)
         uses: actions/setup-java@v4
         with:
           java-version: '25'
-          distribution: 'zulu'
+          distribution: 'jetbrains'
           check-latest: true
           cache: 'gradle'
 
