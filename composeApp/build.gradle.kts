@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.buildconfig)
 }
 
 kotlin {
@@ -46,28 +47,9 @@ kotlin {
 
 val appVersion = "1.1.1"
 
-// Generate a Kotlin source file so the version is accessible at runtime without
-// duplicating the string anywhere else.
-val generateVersionSource by tasks.registering {
-    val outputDir = layout.buildDirectory.dir("generated/version/src")
-    outputs.dir(outputDir)
-    doLast {
-        val file = outputDir.get().file("com/rafambn/keymanager/BuildConfig.kt").asFile
-        file.parentFile.mkdirs()
-        file.writeText(
-            """
-            package com.rafambn.keymanager
-
-            object BuildConfig {
-                const val VERSION = "$appVersion"
-            }
-            """.trimIndent()
-        )
-    }
-}
-
-kotlin.sourceSets.getByName("jvmMain") {
-    kotlin.srcDir(generateVersionSource.map { it.outputs.files })
+buildConfig {
+    packageName("com.rafambn.keymanager")
+    buildConfigField("APP_VERSION", appVersion)
 }
 
 compose.desktop {
@@ -89,10 +71,6 @@ compose.desktop {
                 iconFile.set(project.file("src/jvmMain/resources/icon.ico"))
             }
 
-            // Explicit module list so jlink includes what we need.
-            // keytool itself is a native binary — it is NOT part of any module,
-            // so it gets stripped by jlink's --strip-native-commands. We copy it
-            // back in the afterEvaluate block below.
             modules(
                 "java.base",
                 "java.datatransfer",

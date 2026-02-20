@@ -123,7 +123,7 @@ fun NavigationPane(
 
 
         Text(
-            text = "v${BuildConfig.VERSION}",
+            text = "v${BuildConfig.APP_VERSION}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
             modifier = Modifier.align(Alignment.CenterHorizontally)
