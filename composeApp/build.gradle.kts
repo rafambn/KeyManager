@@ -9,6 +9,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(25)
+
     jvm()
 
     sourceSets {
@@ -60,6 +62,56 @@ compose.desktop {
             windows {
                 iconFile.set(project.file("src/jvmMain/resources/icon.ico"))
             }
+
+            // Explicit module list so jlink includes what we need.
+            // keytool itself is a native binary — it is NOT part of any module,
+            // so it gets stripped by jlink's --strip-native-commands. We copy it
+            // back in the afterEvaluate block below.
+            modules(
+                "java.base",
+                "java.datatransfer",
+                "java.desktop",
+                "java.instrument",
+                "java.logging",
+                "java.management",
+                "java.naming",
+                "java.net.http",
+                "java.prefs",
+                "java.rmi",
+                "java.security.jgss",
+                "java.security.sasl",
+                "java.sql",
+                "java.xml",
+                "jdk.unsupported",
+                "jdk.security.auth",
+                "jdk.security.jgss"
+            )
         }
+
+    }
+}
+
+// jlink strips native commands (--strip-native-commands), which removes keytool from
+// the bundled runtime. Copy it back from the JDK used to build the project.
+fun copyKeytoolToRuntime(variant: String) {
+    val buildDir = project.layout.buildDirectory.get().asFile
+    val runtimeBinDir = File("$buildDir/compose/tmp/$variant/runtime/bin")
+    val executable = if (System.getProperty("os.name").lowercase().contains("windows")) "keytool.exe" else "keytool"
+    val sourceKeytool = File(System.getProperty("java.home")).resolve("bin/$executable")
+
+    runtimeBinDir.mkdirs()
+
+    if (sourceKeytool.exists()) {
+        val dest = runtimeBinDir.resolve(executable)
+        sourceKeytool.copyTo(dest, overwrite = true)
+        dest.setExecutable(true)
+    } else {
+        logger.warn("keytool not found at ${sourceKeytool.absolutePath} — bundled runtime will not include keytool")
+    }
+}
+
+afterEvaluate {
+    for (taskName in listOf("packageDeb", "packageMsi", "packageDmg")) {
+        tasks.findByName(taskName)?.doFirst { copyKeytoolToRuntime("main") }
     }
 }

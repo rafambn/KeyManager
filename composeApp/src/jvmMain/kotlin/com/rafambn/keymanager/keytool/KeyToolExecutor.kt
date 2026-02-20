@@ -28,7 +28,11 @@ internal object KeyToolExecutor {
 
     internal suspend fun execute(vararg args: String, stdin: String? = null): RawResult = withContext(Dispatchers.IO) {
         val command = listOf(keytoolPath) + args.toList()
-        val process = processFactory(command)
+        val process = try {
+            processFactory(command)
+        } catch (e: Exception) {
+            return@withContext RawResult("", "Failed to start keytool process: ${e.message}", -1)
+        }
 
         if (stdin != null) {
             process.outputStream.bufferedWriter().use { it.write(stdin) }
