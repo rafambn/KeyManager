@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.rafambn.keymanager.BuildConfig
 import keymanager.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -21,7 +22,6 @@ fun NavigationPane(
     onOpenKeystore: () -> Unit,
     onBulkMove: () -> Unit,
     onSettings: () -> Unit,
-    appVersion: String = "1.0.0",
     modifier: Modifier = Modifier
 ) {
     val appTitle = stringResource(Res.string.app_title)
@@ -123,7 +123,7 @@ fun NavigationPane(
 
 
         Text(
-            text = "v$appVersion",
+            text = "v${BuildConfig.VERSION}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
             modifier = Modifier.align(Alignment.CenterHorizontally)

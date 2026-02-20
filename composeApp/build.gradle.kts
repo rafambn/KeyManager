@@ -44,6 +44,32 @@ kotlin {
     }
 }
 
+val appVersion = "1.1.1"
+
+// Generate a Kotlin source file so the version is accessible at runtime without
+// duplicating the string anywhere else.
+val generateVersionSource by tasks.registering {
+    val outputDir = layout.buildDirectory.dir("generated/version/src")
+    outputs.dir(outputDir)
+    doLast {
+        val file = outputDir.get().file("com/rafambn/keymanager/BuildConfig.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            """
+            package com.rafambn.keymanager
+
+            object BuildConfig {
+                const val VERSION = "$appVersion"
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+kotlin.sourceSets.getByName("jvmMain") {
+    kotlin.srcDir(generateVersionSource.map { it.outputs.files })
+}
+
 compose.desktop {
     application {
         mainClass = "com.rafambn.keymanager.MainKt"
@@ -51,7 +77,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "KeyManager"
-            packageVersion = "1.1.1"
+            packageVersion = appVersion
 
             linux {
                 iconFile.set(project.file("src/jvmMain/resources/icon.png"))
