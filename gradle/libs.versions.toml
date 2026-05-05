@@ -1,14 +1,14 @@
 [versions]
-androidx-lifecycle = "2.10.0-alpha06"
-composeHotReload = "1.0.0"
-composeMultiplatform = "1.10.1"
-kotlin = "2.3.10"
+androidx-lifecycle = "2.10.0"
+composeHotReload = "1.1.0"
+composeMultiplatform = "1.10.3"
+kotlin = "2.3.20"
 kotlinx-coroutines = "1.10.2"
-kotlinx-serialization = "1.7.3"
-cmpNavigation3 = "1.0.0-alpha06"
+kotlinx-serialization = "1.11.0"
+cmpNavigation3 = "1.1.0"
 kotlinx-coroutines-test = "1.10.2"
 multiplatform-settings = "1.1.1"
-buildconfig = "6.0.7"
+buildconfig = "6.0.9"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
