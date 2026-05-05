@@ -68,7 +68,7 @@ fun NavigationRoot(
         modifier = modifier,
         backStack = backStack,
         onBack = { backStack.pop() },
-        sceneStrategy = dialogStrategy,
+        sceneStrategies = listOf(dialogStrategy),
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()

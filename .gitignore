@@ -22,4 +22,4 @@ keys/*.jks
 
 # Claude Code documentation
 .claude/docs/
-CLAUDE.md
+AGENTS.md
