@@ -7,15 +7,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rafambn/KeyManager/releases/latest">
-    <img alt="Release" src="https://img.shields.io/github/v/release/rafambn/KeyManager?label=Release">
-  </a>
-  <a href="./LICENSE">
-    <img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg">
-  </a>
-  <a href="https://github.com/rafambn/KeyManager/releases">
-    <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0A7EA4">
-  </a>
+  <a href="https://github.com/rafambn/KeyManager/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/rafambn/KeyManager?label=Release"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://github.com/rafambn/KeyManager/releases"><img alt="Platform" src="https://img.shields.io/badge/platform-jvm-0A7EA4"></a>
+</p>
+
+<p align="center">
+  <img alt="Repository views" src="https://profile.rafambn.com/badge/rafambn/KeyManager.svg">
 </p>
 
 <p align="center">
